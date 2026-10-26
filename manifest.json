@@ -1,0 +1,9 @@
+{
+  "id": "local-tags",
+  "name": "Local Tags",
+  "version": "0.1.0",
+  "minAppVersion": "1.14.4",
+  "description": "File-local tags with completion, highlighting, and a hierarchical search view.",
+  "author": "mstksb",
+  "isDesktopOnly": true
+}

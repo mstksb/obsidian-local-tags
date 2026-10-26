@@ -1,0 +1,41 @@
+span.local-tags-tag {
+  font-size: var(--tag-size, var(--font-smaller));
+  font-weight: var(--local-tags-weight, var(--tag-weight, inherit));
+  font-style: var(--local-tags-style, inherit);
+  color: var(--local-tags-color, var(--tag-color));
+  background-color: var(--local-tags-background, var(--tag-background));
+  border: var(--tag-border-width, 0) solid var(--tag-border-color);
+  border-radius: var(--tag-radius, 2em);
+  corner-shape: var(--tag-corner-shape, round);
+  padding: max(0px, calc(var(--tag-padding-y, 0.25em) + var(--local-tags-padding-y-offset, 0px)))
+    var(--tag-padding-x, 0.65em);
+  text-decoration: var(--local-tags-decoration, var(--tag-decoration, none));
+  line-height: 1;
+  vertical-align: baseline;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+span.local-tags-error {
+  font-size: var(--tag-size, var(--font-smaller));
+  color: var(--text-error);
+  text-decoration: underline wavy var(--text-error);
+}
+
+.local-tags-tree-list {
+  list-style: none;
+  padding-inline-start: var(--size-4-4);
+  margin-block: 0;
+}
+
+.local-tags-tree-link {
+  display: inline-block;
+  padding: var(--size-2-1) var(--size-2-2);
+  color: var(--text-normal);
+  text-decoration: none;
+  border-radius: var(--radius-s);
+}
+
+.local-tags-tree-link:hover {
+  background-color: var(--background-modifier-hover);
+}

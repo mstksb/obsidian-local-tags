@@ -1,0 +1,48 @@
+{
+  "name": "local-tags",
+  "version": "0.1.0",
+  "description": "File-local tags for Obsidian with completion, highlighting, and a hierarchical search view.",
+  "author": "mstksb",
+  "license": "GPL-3.0-only",
+  "private": true,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mstksb/obsidian-local-tags.git"
+  },
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "build": "npm run typecheck && node esbuild.config.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --test-timeout=10000 tests/*.test.mjs tests/tooling/*.test.mjs",
+    "test:tooling": "node --test --test-timeout=10000 tests/tooling/*.test.mjs",
+    "validate": "node scripts/release-project.mjs validate",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run format:check && npm run validate && npm test && npm run build",
+    "release:prepare": "node scripts/release-project.mjs prepare",
+    "release:check": "node scripts/release-project.mjs check",
+    "release:notes": "node scripts/release-project.mjs notes"
+  },
+  "dependencies": {
+    "mdast-util-from-markdown": "2.1.0",
+    "mdast-util-frontmatter": "2.0.1",
+    "mdast-util-gfm": "3.1.0",
+    "micromark-extension-frontmatter": "2.0.0",
+    "micromark-extension-gfm": "3.0.0",
+    "micromark-util-decode-string": "2.0.1"
+  },
+  "devDependencies": {
+    "@codemirror/language": "6.13.1",
+    "@codemirror/state": "6.7.6",
+    "@codemirror/view": "6.43.13",
+    "@types/node": "24.19.2",
+    "esbuild": "0.25.12",
+    "jsdom": "27.4.0",
+    "obsidian": "1.14.4",
+    "prettier": "3.9.10",
+    "typescript": "5.9.3"
+  }
+}
