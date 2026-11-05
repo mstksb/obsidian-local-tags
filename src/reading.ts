@@ -220,8 +220,8 @@ export function decorateReading(
     span.replaceWith(...span.childNodes);
   });
   const document = element.ownerDocument;
-  const ownerWindow = document.defaultView;
-  if (!ownerWindow) return 0;
+  // Obsidian's win falls back to the app Window for detached rendering Documents.
+  const ownerWindow = document.win as Window & typeof window;
   const walker = document.createTreeWalker(element, 5); // SHOW_ELEMENT | SHOW_TEXT, across realms.
   const nodes: { node: Text; from: number; to: number; forbidden: boolean }[] = [];
   let flat = '';
@@ -313,13 +313,13 @@ export function decorateReading(
     if (entry.forbidden) continue;
     const intersecting = marks.filter((mark) => mark.from < entry.to && entry.from < mark.to);
     if (intersecting.length === 0) continue;
-    const fragment = ownerWindow.createFragment();
+    const fragment = document.adoptNode(ownerWindow.createFragment());
     let offset = 0;
     for (const mark of intersecting) {
       const from = Math.max(0, mark.from - entry.from);
       const to = Math.min(entry.node.length, mark.to - entry.from);
       fragment.append(entry.node.data.slice(offset, from));
-      const span = ownerWindow.createSpan();
+      const span = document.adoptNode(ownerWindow.createSpan());
       span.dataset.localTagsReading = 'true';
       span.className = mark.kind === 'error' ? config.errorClass : config.tagClass;
       span.textContent = entry.node.data.slice(from, to);

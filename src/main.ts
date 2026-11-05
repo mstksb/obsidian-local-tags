@@ -130,7 +130,7 @@ export default class LocalTagsPlugin extends Plugin {
           this.trackReading(element, () => {
             const current = context.getSectionInfo(element);
             return (
-              document.isCurrent() &&
+              // A source update does not discard unchanged rendered sections.
               this.readingRequests.get(element) === request &&
               context.sourcePath === file.path &&
               current?.lineStart === info.lineStart &&

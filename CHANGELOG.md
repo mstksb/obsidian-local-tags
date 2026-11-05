@@ -4,6 +4,13 @@ User-visible changes are recorded here. Entries under `[Unreleased]` have not be
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-05
+
+### Fixed
+
+- Preserve tag decorations in unchanged Reading View sections after partial document updates.
+- Decorate tags in Reading View documents without their own Window and create nodes in the correct document.
+
 ### Changed
 
 - Keep basic operations in the README Quick start and shorten the usage guide to input rules, recognition limits, appearance settings, and search caveats.
