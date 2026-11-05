@@ -1,7 +1,7 @@
 ---
 model-name: unknown
 reasoning-effort: unknown
-output-datetime: '2026-10-26 23:31:49'
+output-datetime: '2026-11-05 17:39:36'
 ---
 
 # Changelog
@@ -9,6 +9,10 @@ output-datetime: '2026-10-26 23:31:49'
 User-visible changes are recorded here. Entries under `[Unreleased]` have not been released.
 
 ## [Unreleased]
+
+### Changed
+
+- Keep basic operations in the README Quick start and shorten the usage guide to input rules, recognition limits, appearance settings, and search caveats.
 
 ## [0.1.0] - 2026-10-27
 

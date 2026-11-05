@@ -1,7 +1,7 @@
 ---
 model-name: unknown
 reasoning-effort: unknown
-output-datetime: '2026-10-26 23:47:41'
+output-datetime: '2026-11-05 17:39:36'
 ---
 
 # Local Tags
@@ -13,7 +13,7 @@ Check [Releases](https://github.com/mstksb/obsidian-local-tags/releases) for pub
 ## Features
 
 - Write tags such as `##project` and hierarchical tags such as `##people/Alex`.
-- Complete tag names from the current Markdown file, with up to 10 suggestions.
+- Complete tag names from the current Markdown file.
 - Display tags in Source mode, Live Preview, and Reading View.
 - Browse the current file's tags in a hierarchical panel.
 - Click a tag in the panel to search for its text within the current file.
@@ -32,20 +32,14 @@ After replacing an installed build, disable and re-enable the plugin. If a new i
 ## Quick start
 
 1. Add `##project` or `##people/Alex` to a Markdown note.
-2. Type `##` and part of an existing tag name, then press Enter to accept a suggestion.
+2. Type `##` and part of an existing tag name, select a suggestion, and press Enter to accept it; press Esc to cancel.
 3. Run the command **Open tag panel** to open the tag panel.
 4. Click a tag in the panel to search the current file.
 5. Open **Settings → Local Tags** to adjust tag appearance.
 
-## Behavior to know
+Local tags use `##` and are separate from Obsidian's standard `#tags`.
 
-- Local tags use `##` and are separate from Obsidian's standard `#tags`.
-- Names are case-sensitive: `##Project` and `##project` are different tags.
-- Tags in code, frontmatter, links, URLs, HTML, and escaped notation are excluded.
-- Names made only of digits, or digits and `/`, are treated as ordinary text.
-- Panel searches use a text query and may also match the same text in places that are excluded from tag recognition.
-
-See [Usage](docs/usage.md) for examples and settings.
+See [Usage](docs/usage.md) for input rules, recognition limits, appearance settings, and search caveats.
 
 ## Limitations
 
@@ -78,9 +72,9 @@ Third-party components retain their respective licenses. Their notices are gener
 
 | File                                       | Purpose and update conditions                                                                                           |
 | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| [README.md](README.md)                     | Project overview, installation, project policy, and document index; update when these entry points or policies change.  |
+| [README.md](README.md)                     | Project overview, installation, basic operations, project policy, and document index; update when these change.         |
 | [AGENTS.md](AGENTS.md)                     | Project-specific editing instructions; update when the repository's working rules or references change.                 |
-| [docs/usage.md](docs/usage.md)             | Published syntax, completion, panel behavior, and settings; update when user-visible behavior changes.                  |
+| [docs/usage.md](docs/usage.md)             | Input rules, recognition limits, appearance settings, and search caveats; update when these change.                     |
 | [docs/development.md](docs/development.md) | Build, test, manual checks, version preparation, and release procedure; update when those commands or processes change. |
 | [CHANGELOG.md](CHANGELOG.md)               | User-visible changes for each release; update before preparing a release.                                               |
 | [LICENSE](LICENSE)                         | License terms for the project's original code; keep licensing statements consistent with this file.                     |
