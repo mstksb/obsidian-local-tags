@@ -9,13 +9,22 @@ npm ci --ignore-scripts
 npm run check
 ```
 
+`npm run check` checks formatting, validates release metadata, runs the official Obsidian
+ESLint rules and automated tests, then type-checks and builds the distribution. The check
+workflow and release workflow both call this command.
+
+ESLint is pinned to 9.39.5 to satisfy the official plugin's current transitive peer
+dependencies. npm reports this ESLint version as unsupported. Revisit the pin when those
+dependencies declare support for ESLint 10.
+
 Use individual commands when investigating a specific change:
 
-| Command                | Purpose                                                    |
-| ---------------------- | ---------------------------------------------------------- |
-| `npm test`             | Run the automated behavior and tooling tests.              |
-| `npm run format:check` | Check formatting without rewriting files.                  |
-| `npm run build`        | Type-check the source and build the minified distribution. |
+| Command                | Purpose                                                                                                                    |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `npm run lint`         | Check plugin source, package metadata, manifest, and license with the official Obsidian ESLint rules and fail on warnings. |
+| `npm test`             | Run the automated behavior and tooling tests.                                                                              |
+| `npm run format:check` | Check formatting without rewriting files.                                                                                  |
+| `npm run build`        | Type-check the source and build the minified distribution.                                                                 |
 
 Tests focus on documented behavior, input/output boundaries, editing state, and DOM results. These checks run without launching Obsidian. Their success does not establish that actual application input, focus, or theme appearance has been verified.
 
@@ -78,11 +87,18 @@ The command does not commit, create a tag, push, or publish a release. Review it
 
 1. Use the approved commit for the release; the version tag must match `manifest.json` exactly, such as `0.1.0`.
 2. Create and push that tag when authorized.
-3. GitHub Actions checks and builds the tagged source, then creates a draft release using the corresponding `CHANGELOG.md` section.
+3. GitHub Actions checks and builds the tagged source, generates build-provenance attestations for the five distribution files, then creates a draft release using the corresponding `CHANGELOG.md` section.
 4. Review the draft and its five distribution files, then publish it as the maintainer.
 
 Pushing source to the public repository makes that source visible before a draft release is published. A draft is a review step for the distribution, not a way to keep pushed source confidential.
 
 Keep the source at the tag and the attached distribution in agreement. GitHub's source archives identify the tagged source; the repository contains the build configuration and locked dependency information needed to reproduce it. Check the license texts, notices, and source availability along with the distribution.
+
+The release workflow uses `actions/attest` with `id-token: write` and `attestations: write`.
+After downloading a release asset, verify its provenance with
+`gh attestation verify main.js --repo mstksb/obsidian-local-tags`, replacing `main.js`
+with the downloaded file's path. See [GitHub's artifact attestation documentation](https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations).
+Attestations are generated when the updated release workflow runs. Adding this configuration
+does not generate attestations for previously published assets.
 
 Publishing a GitHub release and listing the plugin in Obsidian's community directory are separate steps. Community-directory installation becomes available after the listing is accepted.
