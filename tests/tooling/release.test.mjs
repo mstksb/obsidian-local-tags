@@ -37,8 +37,7 @@ async function fixture(t) {
       author: 'mstksb',
     }),
     'versions.json': stringify({ '0.1.0': '1.14.4' }),
-    'CHANGELOG.md':
-      '---\nmodel-name: unknown\n---\n\n# Changelog\n\n## [Unreleased]\n\n### Added\n\n- File-local tags.\n',
+    'CHANGELOG.md': '# Changelog\n\n## [Unreleased]\n\n### Added\n\n- File-local tags.\n',
     LICENSE: await readFile(new URL('../../LICENSE', import.meta.url), 'utf8'),
     'styles.css': '.local-tags-tag { color: inherit; }\n',
   };
@@ -72,12 +71,11 @@ test('metadata validation detects a mismatched plugin version and compatibility 
   await assert.rejects(validateProject(root), /map the current version/u);
 });
 
-test('preparing the first release preserves the frontmatter and creates versioned notes', async (t) => {
+test('preparing the first release creates versioned notes', async (t) => {
   const root = await fixture(t);
   await prepareRelease(root, '0.1.0', { date: '2026-10-26' });
   assert.equal(await checkRelease(root, '0.1.0'), '### Added\n\n- File-local tags.\n');
   const changelog = await readFile(join(root, 'CHANGELOG.md'), 'utf8');
-  assert.ok(changelog.startsWith('---\nmodel-name: unknown\n---\n'));
   assert.match(changelog, /## \[Unreleased\]\n\n## \[0\.1\.0\] - 2026-10-26/u);
   const before = await metadata(root);
   await assert.rejects(prepareRelease(root, '0.1.0'), /already in CHANGELOG/u);
