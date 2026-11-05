@@ -1,11 +1,3 @@
----
-model-name: unknown
-reasoning-effort: unknown
-output-datetime: '2026-10-26 23:47:41'
-guide: agents-md-editor/AGENTS.guide.md
-guide-version: 1.0.0
----
-
 # Project instructions
 
 ## Maintaining this file

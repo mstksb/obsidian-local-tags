@@ -1,9 +1,3 @@
----
-model-name: unknown
-reasoning-effort: unknown
-output-datetime: '2026-11-05 17:39:36'
----
-
 # Changelog
 
 User-visible changes are recorded here. Entries under `[Unreleased]` have not been released.

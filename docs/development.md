@@ -1,9 +1,3 @@
----
-model-name: unknown
-reasoning-effort: unknown
-output-datetime: '2026-10-26 23:47:41'
----
-
 # Development
 
 Use Node.js 24 and npm. The repository includes its dependency lockfile so installs can be reproduced.

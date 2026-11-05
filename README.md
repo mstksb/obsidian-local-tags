@@ -1,9 +1,3 @@
----
-model-name: unknown
-reasoning-effort: unknown
-output-datetime: '2026-11-05 17:39:36'
----
-
 # Local Tags
 
 Local Tags adds file-local `##tags` to Obsidian. Use the same tag name in different notes without mixing their completion suggestions or tag lists.

@@ -1,9 +1,3 @@
----
-model-name: unknown
-reasoning-effort: unknown
-output-datetime: '2026-11-05 17:39:36'
----
-
 # Usage
 
 Start with the [README Quick start](../README.md#quick-start) for tag entry, completion, the tag panel, and search. This guide covers input rules, recognition limits, appearance settings, and search caveats.
