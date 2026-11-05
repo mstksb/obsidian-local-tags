@@ -1,5 +1,7 @@
 # Project instructions
 
+- When creating, updating, or syncing Markdown in this public repository, including README.md, AGENTS.md, CHANGELOG.md, and docs/, do not add AI-, agent-, or model-related YAML frontmatter. This is an exception to general Markdown metadata rules and also applies to metadata from skills and templates, including model-name, reasoning-effort, output-datetime, and skill or guide tracking fields. Preserve frontmatter required for published functionality, such as site generation.
+
 ## Maintaining this file
 
 - Keep these instructions specific to this repository and consistent with its documentation.
