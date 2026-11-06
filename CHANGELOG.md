@@ -4,6 +4,13 @@ User-visible changes are recorded here. Entries under `[Unreleased]` have not be
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-06
+
+### Added
+
+- Shift+click a tag in the panel to cycle through its occurrences and descendant tags within the current note.
+- Highlight the matching line and outline the tag in Source mode, Live Preview, and Reading View while preserving the editor cursor and selection. Nested lists and rendered table cells highlight the matching displayed line.
+
 ## [0.2.2] - 2026-11-06
 
 ### Changed

@@ -1,6 +1,6 @@
 # Usage
 
-Start with the [README Quick start](../README.md#quick-start) for tag entry, completion, the tag panel, and search. This guide covers input rules, recognition limits, appearance settings, and search caveats.
+Start with the [README Quick start](../README.md#quick-start) for tag entry, completion, the tag panel, and search. This guide covers input rules, recognition limits, appearance settings, in-note navigation, and search caveats.
 
 ## Input rules
 
@@ -39,6 +39,16 @@ Open **Settings → Local Tags**. These shared settings apply in Source mode, Li
 **Reset to theme** clears a color override. For bold, underline, and italic, choose **Follow default**, **Enabled**, or **Disabled**.
 
 **Hide local tag prefix when not editing** is off by default. When enabled, valid tags hide `##` in Reading View and while inactive in Live Preview. Moving the cursor into a tag or selecting it shows the prefix. Source mode always shows `##`, and the Markdown source remains unchanged.
+
+## In-note navigation
+
+Shift+left-click a tag in the panel, without Ctrl, Command, or Alt, to scroll to its first occurrence in the current note. Repeat to visit the next occurrence in source order, returning to the first after the last. A parent tag also matches its descendants, so `##people` includes `##people/Alex`.
+
+Source mode, Live Preview, and Reading View highlight the matching line and outline the tag. Source mode and Live Preview preserve the editor cursor and selection. Navigation also preserves the hidden `##` prefix on inactive Live Preview tags when prefix hiding is enabled. Folded sections expand to reveal the match.
+
+In Reading View, a nested list highlights the matching displayed line. In Reading View and rendered Live Preview tables, the line highlight stays within the matching cell. Tags hidden in `%% comments %%` are skipped in Reading View. If no visible occurrence is available, a notice suggests checking the note in editing mode.
+
+Editing the note or changing the target file, Markdown pane, or display mode clears the highlight and resets the cycle. Choosing another tag starts from that tag's first occurrence. Disabling the plugin clears the highlight.
 
 ## Search caveats
 

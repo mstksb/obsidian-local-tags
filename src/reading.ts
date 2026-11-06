@@ -8,6 +8,27 @@ type ReadingMark = Pick<Candidate, 'from' | 'to' | 'kind' | 'name'> & {
   sourceTo: number;
 };
 
+export interface ReadingLocation {
+  path: string;
+  from: number;
+  to: number;
+  isCurrent: () => boolean;
+}
+
+interface ReadingContext {
+  path: string;
+  offset: number;
+  isCurrent: () => boolean;
+}
+
+const locations = new WeakMap<HTMLElement, ReadingLocation>();
+
+/** Only metadata created while aligning the original source is trusted. */
+export function readingLocation(element: HTMLElement): ReadingLocation | undefined {
+  const span = element.closest<HTMLElement>('[data-local-tags-reading]');
+  return span ? locations.get(span) : undefined;
+}
+
 interface Segment {
   value: string;
   marks: ReadingMark[];
@@ -203,8 +224,9 @@ function segments(source: string, allowed = parse(source), highlight = false): S
 function unwrapReading(span: Element): void {
   for (const prefix of span.querySelectorAll('.local-tags-prefix'))
     prefix.replaceWith(...prefix.childNodes);
-  // Restore original text nodes before another decoration pass.
+  // Keep one text node per original mark so repeated processing does not split it.
   span.normalize();
+  locations.delete(span as HTMLElement);
   span.replaceWith(...span.childNodes);
 }
 
@@ -220,11 +242,12 @@ export function decorateReading(
   source: string,
   allowed?: Candidate[],
   showPrefix?: (from: number, to: number) => boolean,
+  context?: ReadingContext,
 ): number {
   // Post processors may be called again on a decorated element or a child.
   // Never mutate the editor renderer's DOM or wrap an existing tag style.
   if (element.closest('[data-local-tags-editor],[data-local-tags-reading]')) return 0;
-  // Embedded documents own their decorations independently.
+  // Embedded documents own their decorations and source locations independently.
   const embedded = (node: HTMLElement): boolean => {
     const embed = node.closest('.internal-embed');
     return Boolean(embed && embed !== element && element.contains(embed));
@@ -282,6 +305,7 @@ export function decorateReading(
   };
   let cursor = 0;
   let referenceIndex = 0;
+  let aligned = true;
   for (const segment of segments(source, allowed, hasHighlight)) {
     if (segment.reference) {
       while (references[referenceIndex]) {
@@ -293,9 +317,14 @@ export function decorateReading(
       }
       const reference = references[referenceIndex++];
       if (!reference || !reference.element.matches('a.internal-link') !== segment.reference.embed) {
+        aligned = false;
         continue;
       }
+      const from = normalizedOffset(reference.from);
       const to = normalizedOffset(reference.to);
+      const target = reference.element.getAttribute(segment.reference.embed ? 'src' : 'data-href');
+      if (normalized.value.slice(cursor, from).trim() || target !== segment.reference.target)
+        aligned = false;
       cursor = to;
       continue;
     }
@@ -306,7 +335,9 @@ export function decorateReading(
       value.startsWith(' ') && normalized.value[cursor - 1] === ' ' ? cursor - 1 : cursor;
     const at = normalized.value.indexOf(value, start);
     if (at < 0) {
-      // Another renderer may change individual segments; do not guess their text.
+      // Styling may still recover later segments, but their source locations
+      // are unsafe when a duplicate has consumed an earlier match.
+      aligned = false;
       continue;
     }
     for (const mark of segment.marks) {
@@ -334,6 +365,17 @@ export function decorateReading(
       const span = document.adoptNode(ownerWindow.createSpan());
       span.dataset.localTagsReading = 'true';
       span.className = mark.kind === 'error' ? config.errorClass : config.tagClass;
+      if (aligned && context && Number.isInteger(context.offset) && context.offset >= 0) {
+        const location = {
+          path: context.path,
+          from: context.offset + mark.sourceFrom,
+          to: context.offset + mark.sourceTo,
+          isCurrent: context.isCurrent,
+        };
+        locations.set(span, location);
+        span.dataset.localTagsSourceFrom = String(location.from);
+        span.dataset.localTagsSourcePath = location.path;
+      }
       const prefixEnd = Math.min(to, mark.from + 2 - entry.from);
       if (mark.kind === 'valid' && prefixEnd > from) {
         const prefix = document.adoptNode(ownerWindow.createSpan());

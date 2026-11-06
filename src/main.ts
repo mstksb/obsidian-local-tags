@@ -1,9 +1,10 @@
-import { MarkdownView, Notice, Plugin, TFile, editorInfoField } from 'obsidian';
+import { FileView, MarkdownView, Notice, Plugin, TFile, editorInfoField } from 'obsidian';
 import type { EditorView } from '@codemirror/view';
 import { config } from './config.ts';
 import { editorExtension, refreshTagDisplay } from './editor/extension.ts';
 import { editorReadingSection } from './editor/reading.ts';
 import { CurrentDocumentController } from './services/controller.ts';
+import { TagNavigation } from './services/navigation.ts';
 import { PrivateTagSuggest } from './suggest.ts';
 import { PrivateTagView } from './views.ts';
 import { clearReading, decorateReading } from './reading.ts';
@@ -20,6 +21,7 @@ export default class LocalTagsPlugin extends Plugin {
   private settingsOverrides: Partial<LocalTagsSettings> = {};
   private settingsSave: Promise<void> = Promise.resolve();
   private controller!: CurrentDocumentController;
+  private navigation!: TagNavigation;
   private readonly readingElements = new Map<HTMLElement, () => boolean>();
   private readonly readingRequests = new WeakMap<HTMLElement, object>();
   private readingSources!: ReadingSourceCache;
@@ -30,7 +32,14 @@ export default class LocalTagsPlugin extends Plugin {
     registerLocalTagsIcon();
     this.readingSources = new ReadingSourceCache((file) => this.app.vault.cachedRead(file));
     this.controller = new CurrentDocumentController(this.app);
-    this.registerView(config.treeViewType, (leaf) => new PrivateTagView(leaf, this.controller));
+    this.navigation = new TagNavigation(this.app, this.controller);
+    this.registerView(
+      config.treeViewType,
+      (leaf) =>
+        new PrivateTagView(leaf, this.controller, (tag, path) =>
+          this.run(this.navigation.navigate(tag, path)),
+        ),
+    );
     this.registerEditorExtension(
       editorExtension(
         this.controller,
@@ -65,18 +74,35 @@ export default class LocalTagsPlugin extends Plugin {
     this.registerEvent(
       this.app.workspace.on('file-open', (file) => {
         const view = this.markdownTarget();
+        this.navigation.track(view?.file === file ? view : null);
         this.run(this.controller.activate(file, view?.file === file ? view.editor : undefined));
       }),
     );
     this.registerEvent(
-      this.app.workspace.on('active-leaf-change', (leaf) =>
-        this.run(this.controller.followLeaf(leaf)),
-      ),
+      this.app.workspace.on('active-leaf-change', (leaf) => {
+        if (leaf?.view instanceof MarkdownView) this.navigation.track(leaf.view);
+        else if (leaf?.view instanceof FileView || leaf?.view.getViewType() === 'empty')
+          this.navigation.track(null);
+        this.run(this.controller.followLeaf(leaf));
+      }),
+    );
+    this.registerEvent(
+      this.app.workspace.on('layout-change', () => {
+        this.navigation.refresh();
+        const view = this.markdownTarget();
+        if (view) this.navigation.track(view);
+      }),
+    );
+    this.registerEvent(
+      this.app.workspace.on('editor-change', (_editor, info) => {
+        if (info.file === this.controller.file) this.navigation.invalidate();
+      }),
     );
     this.registerEvent(
       this.app.vault.on('modify', (file) => {
         if (file instanceof TFile) {
           this.readingSources.invalidate(file);
+          this.navigation.sourceModified(file);
         }
       }),
     );
@@ -84,6 +110,7 @@ export default class LocalTagsPlugin extends Plugin {
       this.app.vault.on('rename', (file) => {
         if (file instanceof TFile) this.readingSources.invalidate(file);
         if (this.controller.file === file) {
+          this.navigation.invalidate();
           this.controller.refresh();
         }
       }),
@@ -92,6 +119,7 @@ export default class LocalTagsPlugin extends Plugin {
       this.app.vault.on('delete', (file) => {
         if (file instanceof TFile) this.readingSources.invalidate(file);
         if (this.controller.file === file) {
+          this.navigation.track(null);
           this.run(this.controller.activate(null));
         }
       }),
@@ -126,6 +154,11 @@ export default class LocalTagsPlugin extends Plugin {
               editorSection.source,
               editorSection.allowed,
               editorSection.showPrefix,
+              {
+                path: context.sourcePath,
+                offset: editorSection.from,
+                isCurrent: editorSection.isCurrent,
+              },
             );
             this.trackReading(element);
             return;
@@ -141,7 +174,13 @@ export default class LocalTagsPlugin extends Plugin {
             return;
           const section = document?.section(info.lineStart, info.lineEnd);
           if (!section || !document) return;
-          decorateReading(element, section.source, section.allowed);
+          const offset = document.lineOffset(info.lineStart);
+          if (offset === undefined) return;
+          decorateReading(element, section.source, section.allowed, undefined, {
+            path: context.sourcePath,
+            offset,
+            isCurrent: document.isCurrent,
+          });
           this.trackReading(element, () => {
             const current = context.getSectionInfo(element);
             return (
@@ -158,6 +197,7 @@ export default class LocalTagsPlugin extends Plugin {
     this.app.workspace.onLayoutReady(() => {
       if (!this.alive) return;
       const view = this.markdownTarget();
+      this.navigation.track(view);
       this.run(
         this.controller.activate(view?.file ?? this.app.workspace.getActiveFile(), view?.editor),
       );
@@ -244,7 +284,11 @@ export default class LocalTagsPlugin extends Plugin {
         continue;
       const section = editorReadingSection(element, [view], path);
       if (!section?.isCurrent()) continue;
-      decorateReading(element, section.source, section.allowed, section.showPrefix);
+      decorateReading(element, section.source, section.allowed, section.showPrefix, {
+        path,
+        offset: section.from,
+        isCurrent: section.isCurrent,
+      });
       this.trackReading(element);
     }
   }
@@ -280,6 +324,7 @@ export default class LocalTagsPlugin extends Plugin {
     this.settingsVersion++;
     this.clearAppearance();
     this.readingSources.dispose();
+    this.navigation.dispose();
     this.controller.dispose();
     for (const element of this.readingElements.keys()) clearReading(element);
     this.readingElements.clear();

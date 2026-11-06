@@ -12,6 +12,7 @@ Check [Releases](https://github.com/mstksb/obsidian-local-tags/releases) for pub
 - Display tags in Source mode, Live Preview, and Reading View.
 - Browse the current file's tags in a hierarchical panel.
 - Click a tag in the panel to search for its text within the current file.
+- Shift+click a tag to cycle through its occurrences with a line highlight and an outline around the matching tag.
 - Adjust the shared text color, background color, emphasis, and vertical padding in the plugin settings.
 
 - Optionally hide `##` in Reading View and on inactive tags in Live Preview.
@@ -31,12 +32,12 @@ After replacing an installed build, disable and re-enable the plugin. If a new i
 1. Add `##project` or `##people/Alex` to a Markdown note.
 2. Type `##` and part of an existing tag name, select a suggestion, and press Enter to accept it; press Esc to cancel.
 3. Run the command **Open tag panel** to open the tag panel.
-4. Click a tag in the panel to search the current file.
+4. Click a tag in the panel to search the current file, or Shift+click to cycle through matching tags in the note.
 5. Open **Settings → Local Tags** to adjust tag appearance.
 
 Local tags use `##` and are separate from Obsidian's standard `#tags`.
 
-See [Usage](docs/usage.md) for input rules, recognition limits, appearance settings, and search caveats.
+See [Usage](docs/usage.md) for input rules, recognition limits, appearance settings, in-note navigation, and search caveats.
 
 ## Limitations
 
@@ -71,7 +72,7 @@ Third-party components retain their respective licenses. Their notices are gener
 | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
 | [README.md](README.md)                     | Project overview, installation, basic operations, project policy, and document index; update when these change.         |
 | [AGENTS.md](AGENTS.md)                     | Project-specific editing instructions; update when the repository's working rules or references change.                 |
-| [docs/usage.md](docs/usage.md)             | Input rules, recognition limits, appearance settings, and search caveats; update when these change.                     |
+| [docs/usage.md](docs/usage.md)             | Input rules, recognition limits, appearance settings, in-note navigation, and search caveats. Update when these change. |
 | [docs/development.md](docs/development.md) | Build, test, manual checks, version preparation, and release procedure; update when those commands or processes change. |
 | [CHANGELOG.md](CHANGELOG.md)               | User-visible changes for each release; update before preparing a release.                                               |
 | [LICENSE](LICENSE)                         | License terms for the project's original code; keep licensing statements consistent with this file.                     |

@@ -17,6 +17,12 @@ export class ReadingDocument {
       this.lineStarts.push(at + 1);
   }
 
+  /** Original source offset, preserving CRLF and UTF-16 editor coordinates. */
+  lineOffset(line: number): number | undefined {
+    if (!Number.isInteger(line) || line < 0) return undefined;
+    return this.lineStarts[line];
+  }
+
   section(lineStart: number, lineEnd: number): { source: string; allowed: Candidate[] } | null {
     if (
       !Number.isInteger(lineStart) ||

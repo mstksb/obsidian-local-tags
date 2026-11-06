@@ -5,6 +5,7 @@ import { editorInfoField, editorLivePreviewField } from 'obsidian';
 import type { DecorationSet } from '@codemirror/view';
 import { config } from '../config.ts';
 import { documentField, isEditing, selectionTouchesTag } from './state.ts';
+import { navigationHighlight } from './navigation-highlight.ts';
 import type { CurrentDocumentController } from '../services/controller.ts';
 
 export const refreshTagDisplay = StateEffect.define<null>();
@@ -19,8 +20,12 @@ const decorations = (hidePrefix = () => false) =>
       const sameMode =
         transaction.startState.field(editorLivePreviewField, false) ===
         transaction.state.field(editorLivePreviewField, false);
+      const sameHighlight =
+        transaction.startState.field(navigationHighlight, false) ===
+        transaction.state.field(navigationHighlight, false);
       return before === after &&
         sameMode &&
+        sameHighlight &&
         !transaction.selection &&
         !transaction.effects.some((effect) => effect.is(refreshTagDisplay))
         ? previous
@@ -32,15 +37,28 @@ const decorations = (hidePrefix = () => false) =>
 function build(state: EditorState, hidePrefix = false): DecorationSet {
   const model = state.field(documentField);
   if (!model) return Decoration.none;
+  const highlight = state.field(navigationHighlight, false);
   return Decoration.set(
     model.candidates
       .filter((candidate) => candidate.kind !== 'plain' && !isEditing(model, candidate))
       .flatMap((candidate) => {
+        const match =
+          candidate.kind === 'valid' &&
+          highlight?.from === candidate.from &&
+          highlight.to === candidate.to
+            ? highlight
+            : null;
+        const tagClass = candidate.kind === 'error' ? config.errorClass : config.tagClass;
         const mark = Decoration.mark({
           attributes: {
             'data-local-tags-editor': 'true',
+            ...(match && {
+              'data-local-tags-match-path': match.path,
+              'data-local-tags-match-from': String(match.from),
+              'data-local-tags-match-to': String(match.to),
+            }),
           },
-          class: candidate.kind === 'error' ? config.errorClass : config.tagClass,
+          class: match ? `${tagClass} local-tags-current-match` : tagClass,
         }).range(candidate.from, candidate.to);
         return hidePrefix &&
           state.field(editorLivePreviewField, false) &&
@@ -120,5 +138,6 @@ export function editorExtension(
         },
       };
     }),
+    navigationHighlight,
   ];
 }

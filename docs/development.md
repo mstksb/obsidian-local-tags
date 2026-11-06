@@ -37,9 +37,9 @@ Use English by default for UI labels, user-facing messages, source comments, tes
 | Location        | Responsibility                               |
 | --------------- | -------------------------------------------- |
 | `src/main.ts`   | Register and connect the plugin to Obsidian. |
-| `src/domain/`   | Tag parsing and index logic.                 |
+| `src/domain/`   | Tag parsing, indexing, and navigation.       |
 | `src/editor/`   | Editor integration and editing state.        |
-| `src/services/` | Current-document services and search.        |
+| `src/services/` | Document services, search, and navigation.   |
 | `tests/`        | Behavior, DOM, and tooling checks.           |
 | `scripts/`      | Build and release helpers.                   |
 
@@ -65,7 +65,8 @@ Obsidian's community-plugin installer downloads only `main.js`, `manifest.json`,
 2. Copy the distribution files to a test vault's `.obsidian/plugins/local-tags/` directory.
 3. Open the vault in Obsidian and enable Local Tags; disable and re-enable an already enabled installation after replacing files.
 4. Check tag entry, completion, file switching, the tag panel, current-file search, Source mode, Live Preview, Reading View, and appearance settings.
-5. Confirm the plugin's behavior after disabling and re-enabling it.
+5. Shift+click panel tags to check cycling and highlights in all three modes. Check cursor and selection preservation, hidden Live Preview prefixes, nested lists, and table cells.
+6. Confirm that editing or changing the target clears the highlight, and check the plugin's behavior after disabling and re-enabling it.
 
 Use the same version of the source, settings, and distribution for verification and release. Keep the vault's notes and existing settings when replacing the runtime files.
 

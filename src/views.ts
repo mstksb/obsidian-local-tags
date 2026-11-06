@@ -20,6 +20,7 @@ export class PrivateTagView extends ItemView {
   constructor(
     leaf: WorkspaceLeaf,
     private readonly controller: CurrentDocumentController,
+    private readonly navigate: (tag: string, path: string) => void,
   ) {
     super(leaf);
   }
@@ -70,6 +71,10 @@ export class PrivateTagView extends ItemView {
           const anchor = ownerWindow.createEl('a');
           anchor.className = 'local-tags-tree-link';
           anchor.textContent = node.name;
+          anchor.setAttribute(
+            'aria-label',
+            `${node.path}: Click to search, Shift+click for the next occurrence`,
+          );
           const query = buildSearchQuery(path, `##${node.path}`);
           anchor.href = buildSearchUri(this.app.vault.getName(), query);
           anchor.addEventListener('click', (event) => {
@@ -79,6 +84,16 @@ export class PrivateTagView extends ItemView {
               return;
             }
             this.controller.commitCurrent();
+            if (
+              event.button === 0 &&
+              event.shiftKey &&
+              !event.ctrlKey &&
+              !event.metaKey &&
+              !event.altKey
+            ) {
+              event.preventDefault();
+              this.navigate(node.path, path);
+            }
           });
           item.append(anchor);
           row = { item, anchor, children: null };
