@@ -283,7 +283,7 @@ export function decorateReading(
   for (const segment of segments(
     source,
     allowed,
-    element.matches('mark') || Boolean(element.querySelector('mark')),
+    element.matches('mark') || element.getElementsByTagName('mark').length > 0,
   )) {
     if (segment.reference) {
       while (references[referenceIndex]) {

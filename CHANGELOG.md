@@ -4,6 +4,13 @@ User-visible changes are recorded here. Entries under `[Unreleased]` have not be
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-11-06
+
+### Changed
+
+- Use a DOM collection lookup when detecting Reading View highlights.
+- Add a documented, declaration-specific CSS lint exception for supported wavy error underlines.
+
 ## [0.2.0] - 2026-11-06
 
 ### Added
