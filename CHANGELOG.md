@@ -4,6 +4,13 @@ User-visible changes are recorded here. Entries under `[Unreleased]` have not be
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-11-06
+
+### Changed
+
+- Detect Reading View highlights during the existing DOM traversal.
+- Use a plain underline for invalid tags to satisfy the CSS compatibility check.
+
 ## [0.2.1] - 2026-11-06
 
 ### Changed

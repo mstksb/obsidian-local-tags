@@ -238,6 +238,7 @@ export function decorateReading(
   const ownerWindow = document.win as Window & typeof window;
   const walker = document.createTreeWalker(element, 5); // SHOW_ELEMENT | SHOW_TEXT, across realms.
   const nodes: { node: Text; from: number; to: number; forbidden: boolean }[] = [];
+  let hasHighlight = element.localName === 'mark';
   let flat = '';
   const references: { from: number; to: number; element: HTMLElement }[] = [];
   let reference: (typeof references)[number] | undefined;
@@ -245,6 +246,7 @@ export function decorateReading(
     const current = walker.currentNode;
     if (reference && !reference.element.contains(current)) reference = undefined;
     if (walker.currentNode.nodeType !== 3) {
+      if ((current as Element).localName === 'mark') hasHighlight = true;
       if (!reference && (current as HTMLElement).matches('a.internal-link,.internal-embed,img')) {
         reference = { from: flat.length, to: flat.length, element: current as HTMLElement };
         references.push(reference);
@@ -280,11 +282,7 @@ export function decorateReading(
   };
   let cursor = 0;
   let referenceIndex = 0;
-  for (const segment of segments(
-    source,
-    allowed,
-    element.matches('mark') || element.getElementsByTagName('mark').length > 0,
-  )) {
+  for (const segment of segments(source, allowed, hasHighlight)) {
     if (segment.reference) {
       while (references[referenceIndex]) {
         const previous = references[referenceIndex]!;

@@ -29,6 +29,20 @@ test('rendering decorates visible tags and errors without changing text or links
   dom.window.close();
 });
 
+test('Reading View highlights support mark roots and deeply nested marks', () => {
+  for (const html of [
+    '<mark id="highlight-root">##highlight</mark>',
+    '<main id="highlight-root"><p><span><mark>##highlight</mark></span></p></main>',
+  ]) {
+    const dom = createDom(html);
+    const root = dom.window.document.querySelector('#highlight-root');
+    decorateReading(root, '==##highlight==');
+    assert.equal(root.querySelector('.local-tags-tag').textContent, '##highlight');
+    assert.equal(root.textContent, '##highlight');
+    dom.window.close();
+  }
+});
+
 test('repeated rendering preserves visible tag text and cleanup removes decoration', () => {
   const dom = createDom('<main><p>before ##pe<span>ople/Alice</span> after</p></main>');
   const root = dom.window.document.querySelector('main');

@@ -27,8 +27,7 @@ span.local-tags-tag > .local-tags-prefix[data-local-tags-prefix-visible] {
 span.local-tags-error {
   font-size: var(--tag-size, var(--font-smaller));
   color: var(--text-error);
-  /* stylelint-disable-next-line plugin/no-unsupported-browser-features -- Chromium supports wavy. The grouped data flags text-decoration-skip. */
-  text-decoration: underline wavy var(--text-error);
+  text-decoration: underline;
 }
 
 .local-tags-tree-list {
