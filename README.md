@@ -8,10 +8,13 @@ Check [Releases](https://github.com/mstksb/obsidian-local-tags/releases) for pub
 
 - Write tags such as `##project` and hierarchical tags such as `##people/Alex`.
 - Complete tag names from the current Markdown file.
+- Choose substring or prefix completion matching, with optional case sensitivity.
 - Display tags in Source mode, Live Preview, and Reading View.
 - Browse the current file's tags in a hierarchical panel.
 - Click a tag in the panel to search for its text within the current file.
 - Adjust the shared text color, background color, emphasis, and vertical padding in the plugin settings.
+
+- Optionally hide `##` in Reading View and on inactive tags in Live Preview.
 
 ## Requirements
 

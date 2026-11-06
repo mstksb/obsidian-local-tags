@@ -1,10 +1,14 @@
 import { PluginSettingTab } from 'obsidian';
 import type { App, SettingDefinitionItem } from 'obsidian';
 import type LocalTagsPlugin from './main.ts';
+import type { CompletionMatchMode } from './domain/index.ts';
 
 export type TagStyle = 'default' | 'on' | 'off';
 
 export interface LocalTagsSettings {
+  completionMatchMode: CompletionMatchMode;
+  completionCaseSensitive: boolean;
+  hideTagPrefix: boolean;
   tagVerticalPadding: number;
   tagTextColor: string;
   tagBackgroundColor: string;
@@ -17,6 +21,9 @@ export function normalizeSettings(value: unknown): LocalTagsSettings {
   const data = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
   const padding = data.tagVerticalPadding;
   return {
+    completionMatchMode: data.completionMatchMode === 'prefix' ? 'prefix' : 'substring',
+    completionCaseSensitive: data.completionCaseSensitive === true,
+    hideTagPrefix: data.hideTagPrefix === true,
     tagVerticalPadding:
       typeof padding === 'number' && Number.isFinite(padding)
         ? Math.max(-5, Math.min(5, Math.round(padding * 4) / 4))
@@ -49,6 +56,46 @@ export class LocalTagsSettingTab extends PluginSettingTab {
 
   getSettingDefinitions(): SettingDefinitionItem[] {
     return [
+      {
+        name: 'Completion matching',
+        desc: 'Substring match finds tag names containing your input. Prefix match finds tag names starting with your input.',
+        render: (setting) => {
+          setting.addDropdown((dropdown) =>
+            dropdown
+              .addOptions({ substring: 'Substring match', prefix: 'Prefix match' })
+              .setValue(this.plugin.settings.completionMatchMode)
+              .onChange(async (value) => {
+                await this.plugin.updateSettings({
+                  completionMatchMode: value === 'prefix' ? 'prefix' : 'substring',
+                });
+              }),
+          );
+        },
+      },
+      {
+        name: 'Case-sensitive completion',
+        desc: 'Compare completion input with matching case. When off, compare without case while preserving each tag’s original spelling.',
+        render: (setting) => {
+          setting.addToggle((toggle) =>
+            toggle
+              .setValue(this.plugin.settings.completionCaseSensitive)
+              .onChange(async (value) => {
+                await this.plugin.updateSettings({ completionCaseSensitive: value });
+              }),
+          );
+        },
+      },
+      {
+        name: 'Hide local tag prefix when not editing',
+        desc: 'Hide ## in Reading view and on inactive tags in Live Preview. Source mode always shows it.',
+        render: (setting) => {
+          setting.addToggle((toggle) =>
+            toggle.setValue(this.plugin.settings.hideTagPrefix).onChange(async (value) => {
+              await this.plugin.updateSettings({ hideTagPrefix: value });
+            }),
+          );
+        },
+      },
       this.colorSetting('tagTextColor', 'Local tag text color', 'color'),
       this.colorSetting('tagBackgroundColor', 'Local tag background color', 'backgroundColor'),
       ...(

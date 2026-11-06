@@ -1,8 +1,8 @@
-import { editorInfoField } from 'obsidian';
+import { editorInfoField, editorLivePreviewField } from 'obsidian';
 import type { EditorView } from '@codemirror/view';
 import { ReadingDocument } from '../reading-source.ts';
 import type { Candidate } from '../domain/parser.ts';
-import { documentField, isEditing } from './state.ts';
+import { documentField, isEditing, selectionTouchesTag } from './state.ts';
 import type { DocumentModel } from './state.ts';
 
 const documents = new WeakMap<DocumentModel, ReadingDocument>();
@@ -11,7 +11,13 @@ export function editorReadingSection(
   element: HTMLElement,
   views: Iterable<EditorView>,
   sourcePath: string,
-): { source: string; allowed: Candidate[]; isCurrent: () => boolean } | null {
+): {
+  source: string;
+  allowed: Candidate[];
+  from: number;
+  isCurrent: () => boolean;
+  showPrefix: (from: number, to: number) => boolean;
+} | null {
   for (const view of views) {
     if (
       !view.contentDOM.contains(element) ||
@@ -45,6 +51,12 @@ export function editorReadingSection(
     if (!section) return null;
     return {
       ...section,
+      showPrefix: (from, to) =>
+        !view.state.field(editorLivePreviewField, false) ||
+        selectionTouchesTag(view.state.selection, {
+          from: section.from + from,
+          to: section.from + to,
+        }),
       isCurrent: () =>
         document.isCurrent() &&
         view.contentDOM.contains(element) &&

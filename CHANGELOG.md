@@ -4,6 +4,22 @@ User-visible changes are recorded here. Entries under `[Unreleased]` have not be
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-06
+
+### Added
+
+- Choose substring or prefix matching for tag completion.
+- Toggle case-sensitive completion while preserving each tag's original spelling.
+- Hide the `##` prefix in Reading View and on inactive tags in Live Preview. Source mode always shows the prefix.
+
+### Changed
+
+- Completion ignores case by default. Existing settings retain substring matching and keep prefix hiding disabled.
+
+### Distribution
+
+- Validate releases with the official Obsidian ESLint rules and generate build-provenance attestations for the five distribution files.
+
 ## [0.1.1] - 2026-11-05
 
 ### Fixed

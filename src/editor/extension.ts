@@ -1,46 +1,66 @@
 import { Decoration, EditorView, ViewPlugin } from '@codemirror/view';
-import { StateField } from '@codemirror/state';
-import { editorInfoField } from 'obsidian';
+import { StateEffect, StateField } from '@codemirror/state';
+import type { EditorState } from '@codemirror/state';
+import { editorInfoField, editorLivePreviewField } from 'obsidian';
 import type { DecorationSet } from '@codemirror/view';
 import { config } from '../config.ts';
-import { documentField, isEditing } from './state.ts';
+import { documentField, isEditing, selectionTouchesTag } from './state.ts';
 import type { CurrentDocumentController } from '../services/controller.ts';
 
-const decorations = () =>
+export const refreshTagDisplay = StateEffect.define<null>();
+
+const decorations = (hidePrefix = () => false) =>
   StateField.define<DecorationSet>({
-    create: (state) => build(state.field(documentField)),
+    create: (state) => build(state, hidePrefix()),
     update(previous, transaction) {
       // Enabling the plugin reconfigures editors that do not have this field yet.
       const before = transaction.startState.field(documentField, false);
       const after = transaction.state.field(documentField);
-      return before === after ? previous : build(after);
+      const sameMode =
+        transaction.startState.field(editorLivePreviewField, false) ===
+        transaction.state.field(editorLivePreviewField, false);
+      return before === after &&
+        sameMode &&
+        !transaction.selection &&
+        !transaction.effects.some((effect) => effect.is(refreshTagDisplay))
+        ? previous
+        : build(transaction.state, hidePrefix());
     },
     provide: (field) => EditorView.decorations.from(field),
   });
 
-function build(model: ReturnType<CurrentDocumentController['modelFor']>): DecorationSet {
+function build(state: EditorState, hidePrefix = false): DecorationSet {
+  const model = state.field(documentField);
   if (!model) return Decoration.none;
   return Decoration.set(
     model.candidates
       .filter((candidate) => candidate.kind !== 'plain' && !isEditing(model, candidate))
-      .map((candidate) =>
-        Decoration.mark({
+      .flatMap((candidate) => {
+        const mark = Decoration.mark({
           attributes: {
             'data-local-tags-editor': 'true',
           },
           class: candidate.kind === 'error' ? config.errorClass : config.tagClass,
-        }).range(candidate.from, candidate.to),
-      ),
+        }).range(candidate.from, candidate.to);
+        return hidePrefix &&
+          state.field(editorLivePreviewField, false) &&
+          candidate.kind === 'valid' &&
+          !selectionTouchesTag(state.selection, candidate)
+          ? [mark, Decoration.replace({}).range(candidate.from, candidate.from + 2)]
+          : [mark];
+      }),
+    true,
   );
 }
 
 export function editorExtension(
   controller: CurrentDocumentController,
   refreshReading?: (view: EditorView) => void,
+  hidePrefix = () => false,
 ) {
   return [
     documentField,
-    decorations(),
+    decorations(hidePrefix),
     ViewPlugin.define((view) => {
       controller.views.add(view);
       controller.observe(view);
@@ -79,7 +99,18 @@ export function editorExtension(
           path = nextFile?.path;
           if (update.docChanged || update.selectionSet || update.focusChanged || fileChanged)
             controller.observe(update.view);
-          if (update.docChanged || update.viewportChanged || fileChanged) refresh();
+          if (
+            update.docChanged ||
+            update.viewportChanged ||
+            (update.selectionSet && hidePrefix()) ||
+            fileChanged ||
+            update.transactions.some((transaction) =>
+              transaction.effects.some((effect) => effect.is(refreshTagDisplay)),
+            ) ||
+            update.startState.field(editorLivePreviewField, false) !==
+              update.state.field(editorLivePreviewField, false)
+          )
+            refresh();
         },
         destroy() {
           destroyed = true;

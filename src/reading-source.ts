@@ -37,7 +37,7 @@ export class ReadingDocument {
   widget(
     offset: number,
     cell?: { row: number; column: number },
-  ): { source: string; allowed: Candidate[] } | null {
+  ): { source: string; allowed: Candidate[]; from: number } | null {
     this.tree ??= markdownTree(this.source);
     const find = (node: SyntaxNode): SyntaxNode | undefined => {
       const from = node.position?.start.offset;
@@ -66,7 +66,7 @@ export class ReadingDocument {
     // GFM cell positions include their surrounding pipes and padding.
     const from = (cell ? node?.children?.[0] : node)?.position?.start.offset;
     const to = (cell ? node?.children?.at(-1) : node)?.position?.end.offset;
-    return from === undefined || to === undefined ? null : this.range(from, to);
+    return from === undefined || to === undefined ? null : { ...this.range(from, to), from };
   }
 
   private range(from: number, to: number): { source: string; allowed: Candidate[] } {

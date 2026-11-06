@@ -16,6 +16,14 @@ span.local-tags-tag {
   box-decoration-break: clone;
 }
 
+span.local-tags-tag > .local-tags-prefix {
+  display: var(--local-tags-prefix-display, inline);
+}
+
+span.local-tags-tag > .local-tags-prefix[data-local-tags-prefix-visible] {
+  display: inline;
+}
+
 span.local-tags-error {
   font-size: var(--tag-size, var(--font-smaller));
   color: var(--text-error);

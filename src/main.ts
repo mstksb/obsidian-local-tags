@@ -1,7 +1,7 @@
 import { MarkdownView, Notice, Plugin, TFile, editorInfoField } from 'obsidian';
 import type { EditorView } from '@codemirror/view';
 import { config } from './config.ts';
-import { editorExtension } from './editor/extension.ts';
+import { editorExtension, refreshTagDisplay } from './editor/extension.ts';
 import { editorReadingSection } from './editor/reading.ts';
 import { CurrentDocumentController } from './services/controller.ts';
 import { PrivateTagSuggest } from './suggest.ts';
@@ -32,7 +32,11 @@ export default class LocalTagsPlugin extends Plugin {
     this.controller = new CurrentDocumentController(this.app);
     this.registerView(config.treeViewType, (leaf) => new PrivateTagView(leaf, this.controller));
     this.registerEditorExtension(
-      editorExtension(this.controller, (view) => this.refreshEditorReading(view)),
+      editorExtension(
+        this.controller,
+        (view) => this.refreshEditorReading(view),
+        () => this.settings.hideTagPrefix,
+      ),
     );
     this.addSettingTab(new LocalTagsSettingTab(this.app, this));
     const settingsVersion = ++this.settingsVersion;
@@ -46,7 +50,13 @@ export default class LocalTagsPlugin extends Plugin {
       this.applyAppearance();
     });
     this.run(this.settingsLoad);
-    this.registerEditorSuggest(new PrivateTagSuggest(this.controller));
+    this.registerEditorSuggest(
+      new PrivateTagSuggest(
+        this.controller,
+        () => this.settings.completionMatchMode,
+        () => this.settings.completionCaseSensitive,
+      ),
+    );
     this.addCommand({
       id: 'open-tag-panel',
       name: 'Open tag panel',
@@ -111,7 +121,12 @@ export default class LocalTagsPlugin extends Plugin {
           )
             return;
           if (editorSection) {
-            decorateReading(element, editorSection.source, editorSection.allowed);
+            decorateReading(
+              element,
+              editorSection.source,
+              editorSection.allowed,
+              editorSection.showPrefix,
+            );
             this.trackReading(element);
             return;
           }
@@ -183,6 +198,7 @@ export default class LocalTagsPlugin extends Plugin {
     this.appearanceRoot = root;
     const settings = this.settings;
     root.setCssProps({
+      '--local-tags-prefix-display': settings.hideTagPrefix ? 'none' : '',
       '--local-tags-padding-y-offset': `${settings.tagVerticalPadding}px`,
       '--local-tags-color': settings.tagTextColor,
       '--local-tags-background': settings.tagBackgroundColor,
@@ -197,10 +213,13 @@ export default class LocalTagsPlugin extends Plugin {
       '--local-tags-style':
         settings.tagItalic === 'default' ? '' : settings.tagItalic === 'on' ? 'italic' : 'normal',
     });
+    for (const view of this.controller.views)
+      view.dispatch({ effects: refreshTagDisplay.of(null) });
   }
 
   private clearAppearance(): void {
     this.appearanceRoot?.setCssProps({
+      '--local-tags-prefix-display': '',
       '--local-tags-padding-y-offset': '',
       '--local-tags-color': '',
       '--local-tags-background': '',
@@ -225,7 +244,7 @@ export default class LocalTagsPlugin extends Plugin {
         continue;
       const section = editorReadingSection(element, [view], path);
       if (!section?.isCurrent()) continue;
-      decorateReading(element, section.source, section.allowed);
+      decorateReading(element, section.source, section.allowed, section.showPrefix);
       this.trackReading(element);
     }
   }

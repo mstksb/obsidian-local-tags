@@ -211,6 +211,113 @@ test('appearance updates clean the previous document without changing unrelated 
   }
 });
 
+test('completion and prefix settings normalize legacy and invalid saved values', () => {
+  assert.equal(fixture.normalizeSettings(null).completionMatchMode, 'substring');
+  for (const value of [undefined, null, '', true, 'PREFIX', {}, []]) {
+    assert.equal(
+      fixture.normalizeSettings({ completionMatchMode: value }).completionMatchMode,
+      'substring',
+    );
+  }
+  for (const value of [undefined, null, false, 1, 'true', {}, []]) {
+    const settings = fixture.normalizeSettings({
+      completionCaseSensitive: value,
+      hideTagPrefix: value,
+    });
+    assert.equal(settings.completionCaseSensitive, false);
+    assert.equal(settings.hideTagPrefix, false);
+  }
+  const settings = fixture.normalizeSettings({
+    completionMatchMode: 'prefix',
+    completionCaseSensitive: true,
+    hideTagPrefix: true,
+  });
+  assert.equal(settings.completionMatchMode, 'prefix');
+  assert.equal(settings.completionCaseSensitive, true);
+  assert.equal(settings.hideTagPrefix, true);
+});
+
+test('registered completion follows settings controls and retains saved choices after reload', async () => {
+  const dom = createDom('<main></main>');
+  const host = app();
+  host.workspace.containerEl = dom.window.document.querySelector('main');
+  const plugin = new LocalTagsPlugin(host);
+  let suggest;
+  plugin.registerEditorSuggest = (value) => {
+    suggest = value;
+  };
+  plugin.onload();
+  try {
+    await Promise.resolve();
+    await plugin.controller.activate(file('A.md'), {
+      getValue: () => '##alpha ##alphabet ##beta/alpha ##Alpha',
+    });
+    const render = (name) => {
+      const definition = plugin.settingTab
+        .getSettingDefinitions()
+        .find((item) => item.name === name);
+      assert.ok(definition?.desc);
+      const setting = new fixture.Setting();
+      definition.render(setting);
+      return setting.controls;
+    };
+    assert.deepEqual(suggest.getSuggestions({ query: 'ALPHA' }), [
+      'Alpha',
+      'alpha',
+      'alphabet',
+      'beta/alpha',
+    ]);
+    const matching = render('Completion matching').dropdown;
+    assert.equal(matching.value, 'substring');
+    assert.deepEqual(matching.options, { substring: 'Substring match', prefix: 'Prefix match' });
+    await matching.change('prefix');
+    assert.deepEqual(suggest.getSuggestions({ query: 'alpha' }), ['Alpha', 'alpha', 'alphabet']);
+    const sensitivity = render('Case-sensitive completion').toggle;
+    assert.equal(sensitivity.value, false);
+    await sensitivity.change(true);
+    assert.deepEqual(suggest.getSuggestions({ query: 'alpha' }), ['alpha', 'alphabet']);
+    assert.deepEqual(suggest.getSuggestions({ query: 'Alpha' }), ['Alpha']);
+    const prefix = render('Hide local tag prefix when not editing').toggle;
+    assert.equal(prefix.value, false);
+    await prefix.change(true);
+    assert.equal(
+      dom.window.document.body.style.getPropertyValue('--local-tags-prefix-display'),
+      'none',
+    );
+    plugin.onunload();
+    plugin.onload();
+    await Promise.resolve();
+    assert.equal(plugin.settings.completionMatchMode, 'prefix');
+    assert.equal(plugin.settings.completionCaseSensitive, true);
+    assert.equal(plugin.settings.hideTagPrefix, true);
+    await plugin.controller.activate(file('A.md'), {
+      getValue: () => '##alpha ##alphabet ##beta/alpha ##Alpha',
+    });
+    assert.deepEqual(suggest.getSuggestions({ query: 'alpha' }), ['alpha', 'alphabet']);
+    await render('Completion matching').dropdown.change('substring');
+    assert.deepEqual(suggest.getSuggestions({ query: 'alpha' }), [
+      'alpha',
+      'alphabet',
+      'beta/alpha',
+    ]);
+    await render('Case-sensitive completion').toggle.change(false);
+    assert.deepEqual(suggest.getSuggestions({ query: 'ALPHA' }), [
+      'Alpha',
+      'alpha',
+      'alphabet',
+      'beta/alpha',
+    ]);
+    await render('Hide local tag prefix when not editing').toggle.change(false);
+    assert.equal(
+      dom.window.document.body.style.getPropertyValue('--local-tags-prefix-display'),
+      '',
+    );
+  } finally {
+    plugin.onunload();
+    dom.window.close();
+  }
+});
+
 test('searchable appearance controls keep their settings and color reset refreshes the definitions', async () => {
   const dom = createDom('<main></main>');
   const host = app();
@@ -222,7 +329,7 @@ test('searchable appearance controls keep their settings and color reset refresh
     const tab = plugin.settingTab;
     tab.containerEl = dom.window.document.querySelector('main');
     const definitions = tab.getSettingDefinitions();
-    assert.equal(definitions.length, 6);
+    assert.equal(definitions.length, 9);
     assert.ok(definitions.every((definition) => definition.name && definition.desc));
     const render = (name) => {
       const definition = tab.getSettingDefinitions().find((item) => item.name === name);

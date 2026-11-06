@@ -71,6 +71,16 @@ test('completion ranks and limits distinct names from only the current file', ()
   index.replace('A.md', parse('##aa ##aa/child ##bb/aa ##cc/aa ##aa ##AA ##invalid/ ##123'));
   assert.deepEqual(index.suggest('aa'), ['aa', 'aa/child', 'bb/aa', 'cc/aa']);
   assert.deepEqual(index.suggest('AA'), ['AA']);
+  assert.deepEqual(index.suggest('aa', 10, 'prefix', true), ['aa', 'aa/child']);
+  assert.deepEqual(index.suggest('AA', 10, 'substring', false), [
+    'AA',
+    'aa',
+    'aa/child',
+    'bb/aa',
+    'cc/aa',
+  ]);
+  assert.deepEqual(index.suggest('AA', 10, 'prefix', false), ['AA', 'aa', 'aa/child']);
+  assert.deepEqual(index.suggest('aa', 2, 'substring', false), ['AA', 'aa']);
   index.replace('B.md', parse(Array.from({ length: 12 }, (_, i) => `##tag${i}`).join(' ')));
   assert.deepEqual(index.suggest('aa'), []);
   assert.deepEqual(index.suggest(''), [

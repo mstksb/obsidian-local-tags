@@ -15,6 +15,14 @@ Start with the [README Quick start](../README.md#quick-start) for tag entry, com
 - Callout titles, callout bodies, and table cells support local tags with the same exclusions.
 - Tags in Obsidian `%% comments %%` are included in completion and the tag panel but are not shown in Reading View.
 
+## Completion settings
+
+Open **Settings → Local Tags** to choose **Completion matching**. **Substring match** finds names containing the input and is the default. **Prefix match** finds names starting with the input, including the start of a hierarchical name.
+
+**Case-sensitive completion** is off by default, including for existing installations. Enable it to compare uppercase and lowercase letters separately. Suggestions preserve the original spelling when displayed and inserted, and tag identity remains case-sensitive.
+
+Completion ranks exact matches first, then prefix matches, then other substring matches, with up to ten suggestions from the current file.
+
 ## Appearance settings
 
 Open **Settings → Local Tags**. These shared settings apply in Source mode, Live Preview, and Reading View.
@@ -29,6 +37,8 @@ Open **Settings → Local Tags**. These shared settings apply in Source mode, Li
 | Local tag vertical padding | Adjust vertical padding from −5 to +5 px in 0.25 px steps; 0 restores the default padding. |
 
 **Reset to theme** clears a color override. For bold, underline, and italic, choose **Follow default**, **Enabled**, or **Disabled**.
+
+**Hide local tag prefix when not editing** is off by default. When enabled, valid tags hide `##` in Reading View and while inactive in Live Preview. Moving the cursor into a tag or selecting it shows the prefix. Source mode always shows `##`, and the Markdown source remains unchanged.
 
 ## Search caveats
 

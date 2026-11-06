@@ -16,6 +16,11 @@ export const editorInfoField = StateField.define({
   update: (value) => value,
 });
 
+export const editorLivePreviewField = StateField.define({
+  create: () => false,
+  update: (value) => value,
+});
+
 export class FileView {
   constructor(file) {
     this.file = file;
@@ -152,6 +157,12 @@ export class Setting {
   addDropdown(callback) {
     const control = new Control();
     this.controls.dropdown = control;
+    callback(control);
+    return this;
+  }
+  addToggle(callback) {
+    const control = new Control();
+    this.controls.toggle = control;
     callback(control);
     return this;
   }

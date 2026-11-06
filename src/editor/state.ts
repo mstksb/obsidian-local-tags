@@ -1,5 +1,5 @@
 import { StateEffect, StateField } from '@codemirror/state';
-import type { Transaction } from '@codemirror/state';
+import type { EditorSelection, Transaction } from '@codemirror/state';
 import { isTagCharacter, parse } from '../domain/parser.ts';
 import type { Candidate, Span } from '../domain/parser.ts';
 
@@ -129,4 +129,8 @@ export const documentField = StateField.define<DocumentModel>({
 
 export function isEditing(model: DocumentModel, span: Span): boolean {
   return model.pending.some((item) => overlap(item, span));
+}
+
+export function selectionTouchesTag(selection: EditorSelection, span: Span): boolean {
+  return selection.ranges.some((range) => range.from <= span.to && range.to >= span.from);
 }

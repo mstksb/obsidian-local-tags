@@ -1,5 +1,7 @@
 import type { Candidate } from './parser.ts';
 
+export type CompletionMatchMode = 'substring' | 'prefix';
+
 export interface TreeNode {
   name: string;
   path: string;
@@ -22,10 +24,24 @@ export class PrivateTagIndex {
     return [...new Set(this.occurrences.map((item) => item.name))].sort(compare);
   }
 
-  suggest(query: string, limit = 10): string[] {
-    const rank = (name: string): number => (name === query ? 0 : name.startsWith(query) ? 1 : 2);
+  suggest(
+    query: string,
+    limit = 10,
+    matchMode: CompletionMatchMode = 'substring',
+    caseSensitive = true,
+  ): string[] {
+    const comparison = (name: string): string => (caseSensitive ? name : name.toLowerCase());
+    const input = comparison(query);
+    const rank = (name: string): number => {
+      const value = comparison(name);
+      return value === input ? 0 : value.startsWith(input) ? 1 : 2;
+    };
     return this.names()
-      .filter((name) => name.includes(query))
+      .filter((name) =>
+        matchMode === 'prefix'
+          ? comparison(name).startsWith(input)
+          : comparison(name).includes(input),
+      )
       .sort((a, b) => rank(a) - rank(b) || compare(a, b))
       .slice(0, limit);
   }

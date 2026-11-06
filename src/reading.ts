@@ -3,7 +3,10 @@ import { config } from './config.ts';
 import { calloutMarkers, markdownTree, parse } from './domain/parser.ts';
 import type { Candidate, Span, SyntaxNode } from './domain/parser.ts';
 
-type ReadingMark = Pick<Candidate, 'from' | 'to' | 'kind' | 'name'>;
+type ReadingMark = Pick<Candidate, 'from' | 'to' | 'kind' | 'name'> & {
+  sourceFrom: number;
+  sourceTo: number;
+};
 
 interface Segment {
   value: string;
@@ -151,6 +154,8 @@ function segments(source: string, allowed = parse(source), highlight = false): S
         .map((tag) => ({
           from: visible(textFrom, tag.from).length,
           to: visible(textFrom, tag.to).length,
+          sourceFrom: tag.from,
+          sourceTo: tag.to,
           kind: tag.kind,
           name: tag.name,
         }));
@@ -195,9 +200,17 @@ function segments(source: string, allowed = parse(source), highlight = false): S
   return result;
 }
 
+function unwrapReading(span: Element): void {
+  for (const prefix of span.querySelectorAll('.local-tags-prefix'))
+    prefix.replaceWith(...prefix.childNodes);
+  // Restore original text nodes before another decoration pass.
+  span.normalize();
+  span.replaceWith(...span.childNodes);
+}
+
 export function clearReading(element: HTMLElement): void {
   element.querySelectorAll('[data-local-tags-reading]').forEach((span) => {
-    span.replaceWith(...span.childNodes);
+    unwrapReading(span);
   });
 }
 
@@ -206,6 +219,7 @@ export function decorateReading(
   element: HTMLElement,
   source: string,
   allowed?: Candidate[],
+  showPrefix?: (from: number, to: number) => boolean,
 ): number {
   // Post processors may be called again on a decorated element or a child.
   // Never mutate the editor renderer's DOM or wrap an existing tag style.
@@ -217,7 +231,7 @@ export function decorateReading(
   };
   element.querySelectorAll<HTMLElement>('[data-local-tags-reading]').forEach((span) => {
     if (embedded(span)) return;
-    span.replaceWith(...span.childNodes);
+    unwrapReading(span);
   });
   const document = element.ownerDocument;
   // Obsidian's win falls back to the app Window for detached rendering Documents.
@@ -310,7 +324,7 @@ export function decorateReading(
   }
   let count = 0;
   for (const entry of nodes) {
-    if (entry.forbidden) continue;
+    if (entry.forbidden || entry.node.length === 0) continue;
     const intersecting = marks.filter((mark) => mark.from < entry.to && entry.from < mark.to);
     if (intersecting.length === 0) continue;
     const fragment = document.adoptNode(ownerWindow.createFragment());
@@ -322,7 +336,15 @@ export function decorateReading(
       const span = document.adoptNode(ownerWindow.createSpan());
       span.dataset.localTagsReading = 'true';
       span.className = mark.kind === 'error' ? config.errorClass : config.tagClass;
-      span.textContent = entry.node.data.slice(from, to);
+      const prefixEnd = Math.min(to, mark.from + 2 - entry.from);
+      if (mark.kind === 'valid' && prefixEnd > from) {
+        const prefix = document.adoptNode(ownerWindow.createSpan());
+        prefix.className = 'local-tags-prefix';
+        if (showPrefix?.(mark.sourceFrom, mark.sourceTo))
+          prefix.dataset.localTagsPrefixVisible = 'true';
+        prefix.textContent = entry.node.data.slice(from, prefixEnd);
+        span.append(prefix, entry.node.data.slice(prefixEnd, to));
+      } else span.textContent = entry.node.data.slice(from, to);
       fragment.append(span);
       offset = to;
       count++;

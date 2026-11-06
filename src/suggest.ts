@@ -8,10 +8,15 @@ import type {
 } from 'obsidian';
 import { candidateAt } from './domain/parser.ts';
 import { config } from './config.ts';
+import type { CompletionMatchMode } from './domain/index.ts';
 import type { CurrentDocumentController } from './services/controller.ts';
 
 export class PrivateTagSuggest extends EditorSuggest<string> {
-  constructor(private readonly controller: CurrentDocumentController) {
+  constructor(
+    private readonly controller: CurrentDocumentController,
+    private readonly completionMatchMode: () => CompletionMatchMode = () => 'substring',
+    private readonly completionCaseSensitive: () => boolean = () => false,
+  ) {
     super(controller.app);
   }
 
@@ -38,7 +43,12 @@ export class PrivateTagSuggest extends EditorSuggest<string> {
   }
 
   getSuggestions(context: EditorSuggestContext): string[] {
-    return this.controller.index.suggest(context.query, config.suggestionsLimit);
+    return this.controller.index.suggest(
+      context.query,
+      config.suggestionsLimit,
+      this.completionMatchMode(),
+      this.completionCaseSensitive(),
+    );
   }
 
   renderSuggestion(name: string, element: HTMLElement): void {
