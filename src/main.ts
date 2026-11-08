@@ -12,6 +12,7 @@ import { ReadingSourceCache } from './reading-source.ts';
 import { LocalTagsSettingTab, normalizeSettings } from './settings.ts';
 import type { LocalTagsSettings } from './settings.ts';
 import { registerLocalTagsIcon } from './icons.ts';
+import { StylingFeature } from './styling/runtime.ts';
 
 export default class LocalTagsPlugin extends Plugin {
   settings = normalizeSettings(null);
@@ -22,6 +23,7 @@ export default class LocalTagsPlugin extends Plugin {
   private settingsSave: Promise<void> = Promise.resolve();
   private controller!: CurrentDocumentController;
   private navigation!: TagNavigation;
+  private styling!: StylingFeature;
   private readonly readingElements = new Map<HTMLElement, () => boolean>();
   private readonly readingRequests = new WeakMap<HTMLElement, object>();
   private readingSources!: ReadingSourceCache;
@@ -33,11 +35,15 @@ export default class LocalTagsPlugin extends Plugin {
     this.readingSources = new ReadingSourceCache((file) => this.app.vault.cachedRead(file));
     this.controller = new CurrentDocumentController(this.app);
     this.navigation = new TagNavigation(this.app, this.controller);
+    this.styling = new StylingFeature(this.app, this, () => this.settings);
     this.registerView(
       config.treeViewType,
       (leaf) =>
-        new PrivateTagView(leaf, this.controller, (tag, path) =>
-          this.run(this.navigation.navigate(tag, path)),
+        new PrivateTagView(
+          leaf,
+          this.controller,
+          (tag, path) => this.run(this.navigation.navigate(tag, path)),
+          this.styling,
         ),
     );
     this.registerEditorExtension(
@@ -176,6 +182,7 @@ export default class LocalTagsPlugin extends Plugin {
           if (!section || !document) return;
           const offset = document.lineOffset(info.lineStart);
           if (offset === undefined) return;
+          this.styling.synchronizeReading(file, document);
           decorateReading(element, section.source, section.allowed, undefined, {
             path: context.sourcePath,
             offset,
@@ -202,6 +209,7 @@ export default class LocalTagsPlugin extends Plugin {
         this.controller.activate(view?.file ?? this.app.workspace.getActiveFile(), view?.editor),
       );
     });
+    this.styling.start();
   }
 
   private markdownTarget(): MarkdownView | null {
@@ -232,6 +240,7 @@ export default class LocalTagsPlugin extends Plugin {
 
   private applyAppearance(): void {
     if (!this.alive) return;
+    this.styling.appearanceChanged();
     const root = this.app.workspace.containerEl?.ownerDocument.body;
     if (root !== this.appearanceRoot) this.clearAppearance();
     if (!root) return;
@@ -321,6 +330,7 @@ export default class LocalTagsPlugin extends Plugin {
 
   onunload(): void {
     this.alive = false;
+    this.styling.dispose();
     this.settingsVersion++;
     this.clearAppearance();
     this.readingSources.dispose();

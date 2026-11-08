@@ -4,6 +4,22 @@ User-visible changes are recorded here. Entries under `[Unreleased]` have not be
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-08
+
+### Added
+
+- Store per-note tag decoration under `local-tags-config`, with text, background, and border colors plus bold, underline, and italic settings.
+- Inherit individual settings through hierarchical tags, falling back to shared appearance settings and theme defaults.
+- Add a collapsible settings, actions, and messages area to the tag panel, with an error count and a caret-based decoration target.
+- Add missing tag definitions and empty attributes, or remove empty attributes while retaining tag definitions. Both actions order attributes as text color, background color, border color, bold, underline, then italic.
+- Generate vivid complementary colors for the caret's configured tag or the note's root tags, with per-attribute exclusions and preserved emphasis settings.
+- Sort tag definitions, expand the configuration to tag headings in editing mode, and edit colors through inline swatches with hex and HSL controls.
+
+### Behavior
+
+- Missing and empty settings inherit without errors. A nonempty invalid setting reports an error while the tag and its other valid settings remain active, and the invalid setting inherits.
+- Reflect configuration changes during editing and external updates. Block configuration writes while errors remain or an insertion would enter a comment, preserving the note's content.
+
 ## [0.3.0] - 2026-11-06
 
 ### Added

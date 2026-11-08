@@ -52,6 +52,7 @@ function build(state: EditorState, hidePrefix = false): DecorationSet {
         const mark = Decoration.mark({
           attributes: {
             'data-local-tags-editor': 'true',
+            ...(candidate.kind === 'valid' && { 'data-local-tag': candidate.name }),
             ...(match && {
               'data-local-tags-match-path': match.path,
               'data-local-tags-match-from': String(match.from),

@@ -8,7 +8,7 @@ export class ReadingDocument {
   private tree?: SyntaxNode;
 
   constructor(
-    private readonly source: string,
+    readonly source: string,
     readonly isCurrent: () => boolean,
     parseSource = parse,
   ) {

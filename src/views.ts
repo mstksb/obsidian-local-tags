@@ -5,6 +5,7 @@ import type { TreeNode } from './domain/index.ts';
 import { buildSearchQuery, buildSearchUri } from './services/search.ts';
 import type { CurrentDocumentController } from './services/controller.ts';
 import { localTagsIconId } from './icons.ts';
+import type { StylingFeature } from './styling/runtime.ts';
 
 export class PrivateTagView extends ItemView {
   private displayedPath: string | null = null;
@@ -21,6 +22,7 @@ export class PrivateTagView extends ItemView {
     leaf: WorkspaceLeaf,
     private readonly controller: CurrentDocumentController,
     private readonly navigate: (tag: string, path: string) => void,
+    private readonly styling?: StylingFeature,
   ) {
     super(leaf);
   }
@@ -36,6 +38,8 @@ export class PrivateTagView extends ItemView {
   onOpen(): Promise<void> {
     this.register(this.controller.subscribe(() => this.draw()));
     this.draw();
+    const detach = this.styling?.mountPanel(this.containerEl, this.controller);
+    if (detach) this.register(detach);
     return Promise.resolve();
   }
 
@@ -70,6 +74,7 @@ export class PrivateTagView extends ItemView {
           const item = ownerWindow.createEl('li');
           const anchor = ownerWindow.createEl('a');
           anchor.className = 'local-tags-tree-link';
+          anchor.dataset.localTag = node.path;
           anchor.textContent = node.name;
           anchor.setAttribute(
             'aria-label',

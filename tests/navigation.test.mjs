@@ -27,6 +27,14 @@ test('panel Shift-click cycles parent and descendant tags without changing selec
   const source = 'intro\n##a ##a/b ##ab `##a` ##a';
   const file = new TFile('A.md');
   const events = new Map();
+  const registerEvent = (name, callback) => {
+    const previous = events.get(name);
+    events.set(name, (...args) => {
+      previous?.(...args);
+      callback(...args);
+    });
+    return {};
+  };
   const scrolls = [];
   const editor = {
     getValue: () => source,
@@ -35,6 +43,7 @@ test('panel Shift-click cycles parent and descendant tags without changing selec
     scrollIntoView: (...range) => scrolls.push(range),
   };
   const view = new MarkdownView(file, editor);
+  view.containerEl = dom.window.document.querySelector('main');
   let sourceMode = true;
   const leaf = { view, getViewState: () => ({ state: { source: sourceMode } }) };
   view.leaf = leaf;
@@ -43,7 +52,7 @@ test('panel Shift-click cycles parent and descendant tags without changing selec
   const app = {
     vault: { getName: () => 'Example Vault', on: () => ({}), cachedRead: async () => source },
     workspace: {
-      on: (name, callback) => events.set(name, callback),
+      on: registerEvent,
       onLayoutReady: () => {},
       getActiveViewOfType: () => view,
       getLeavesOfType: (type) => (type === 'markdown' ? [leaf] : []),
@@ -57,6 +66,7 @@ test('panel Shift-click cycles parent and descendant tags without changing selec
   };
   plugin.onload();
   const cm = {
+    dom: view.containerEl,
     contentDOM: dom.window.document.querySelector('main'),
     state: EditorState.create({
       doc: source,
@@ -84,6 +94,11 @@ test('panel Shift-click cycles parent and descendant tags without changing selec
     events.get('file-open')(file);
     await Promise.resolve();
     const panel = panelFactory({ app, element: dom.window.document.querySelector('aside') });
+    const panelContainer = dom.window.document.createElement('section');
+    panel.contentEl.className = 'view-content';
+    panel.contentEl.replaceWith(panelContainer);
+    panelContainer.append(panel.contentEl);
+    panel.containerEl = panelContainer;
     await panel.onOpen();
     const anchor = [...panel.contentEl.querySelectorAll('a')].find(
       (node) => node.textContent === 'a',

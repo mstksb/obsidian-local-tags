@@ -48,6 +48,7 @@ export function app(read = async () => '') {
     },
     metadataCache: { getFileCache: () => ({ tags: [] }) },
     workspace: {
+      getLeavesOfType: () => [],
       on: () => ({}),
       onLayoutReady: () => {},
       detachLeavesOfType: () => {},

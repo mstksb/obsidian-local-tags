@@ -365,6 +365,7 @@ export function decorateReading(
       const span = document.adoptNode(ownerWindow.createSpan());
       span.dataset.localTagsReading = 'true';
       span.className = mark.kind === 'error' ? config.errorClass : config.tagClass;
+      if (mark.kind === 'valid') span.dataset.localTag = mark.name;
       if (aligned && context && Number.isInteger(context.offset) && context.offset >= 0) {
         const location = {
           path: context.path,

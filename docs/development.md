@@ -39,6 +39,7 @@ Use English by default for UI labels, user-facing messages, source comments, tes
 | `src/main.ts`   | Register and connect the plugin to Obsidian. |
 | `src/domain/`   | Tag parsing, indexing, and navigation.       |
 | `src/editor/`   | Editor integration and editing state.        |
+| `src/styling/`  | Per-note decoration, configuration, and UI.  |
 | `src/services/` | Document services, search, and navigation.   |
 | `tests/`        | Behavior, DOM, and tooling checks.           |
 | `scripts/`      | Build and release helpers.                   |
@@ -67,6 +68,14 @@ Obsidian's community-plugin installer downloads only `main.js`, `manifest.json`,
 4. Check tag entry, completion, file switching, the tag panel, current-file search, Source mode, Live Preview, Reading View, and appearance settings.
 5. Shift+click panel tags to check cycling and highlights in all three modes. Check cursor and selection preservation, hidden Live Preview prefixes, nested lists, and table cells.
 6. Confirm that editing or changing the target clears the highlight, and check the plugin's behavior after disabling and re-enabling it.
+
+For [per-note decoration](usage.md#per-note-decoration), also check the following.
+
+- Check parent inheritance, child overrides, empty values, and invalid-value messages in Source mode, Live Preview, Reading View, and the tag panel. Confirm that invalid values inherit while other valid attributes remain active.
+- Use **Add missing settings** and **Remove empty settings** to check the six-attribute order, preservation of existing values and empty tag definitions, and unchanged content when an action is repeated.
+- Check caret-targeted and whole-note **Random decoration**, the vivid complementary colors, and preservation of emphasis settings and attributes excluded with a leading `.`.
+- Check **Sort settings**, **Expand to tag headings** in editing mode, and applying or canceling a color change through an inline swatch.
+- Confirm that configuration errors and unsafe comment insertions prevent writes, and that unrelated note content remains intact.
 
 Use the same version of the source, settings, and distribution for verification and release. Keep the vault's notes and existing settings when replacing the runtime files.
 

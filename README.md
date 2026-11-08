@@ -14,6 +14,9 @@ Check [Releases](https://github.com/mstksb/obsidian-local-tags/releases) for pub
 - Click a tag in the panel to search for its text within the current file.
 - Shift+click a tag to cycle through its occurrences with a line highlight and an outline around the matching tag.
 - Adjust the shared text color, background color, emphasis, and vertical padding in the plugin settings.
+- Store per-note text, background, and border colors plus bold, underline, and italic settings under `local-tags-config`, with parent-to-child inheritance.
+- Add missing settings, remove empty settings, generate vivid complementary colors, sort definitions, and expand the configuration to tag headings from the tag panel.
+- Edit configuration colors through inline swatches in Source mode and Live Preview, and check configuration errors in the panel.
 
 - Optionally hide `##` in Reading View and on inactive tags in Live Preview.
 
@@ -34,10 +37,11 @@ After replacing an installed build, disable and re-enable the plugin. If a new i
 3. Run the command **Open tag panel** to open the tag panel.
 4. Click a tag in the panel to search the current file, or Shift+click to cycle through matching tags in the note.
 5. Open **Settings → Local Tags** to adjust tag appearance.
+6. For per-note decoration, expand **Settings, actions and messages** in the panel and choose **Add missing settings**. Fill in the generated values, or choose **Random decoration** to generate colors.
 
 Local tags use `##` and are separate from Obsidian's standard `#tags`.
 
-See [Usage](docs/usage.md) for input rules, recognition limits, appearance settings, in-note navigation, and search caveats.
+See [Usage](docs/usage.md) for input rules, recognition limits, shared appearance settings, per-note decoration, panel actions, in-note navigation, and search caveats.
 
 ## Limitations
 
@@ -68,11 +72,11 @@ Third-party components retain their respective licenses. Their notices are gener
 
 ## Documentation and updates
 
-| File                                       | Purpose and update conditions                                                                                           |
-| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| [README.md](README.md)                     | Project overview, installation, basic operations, project policy, and document index; update when these change.         |
-| [AGENTS.md](AGENTS.md)                     | Project-specific editing instructions; update when the repository's working rules or references change.                 |
-| [docs/usage.md](docs/usage.md)             | Input rules, recognition limits, appearance settings, in-note navigation, and search caveats. Update when these change. |
-| [docs/development.md](docs/development.md) | Build, test, manual checks, version preparation, and release procedure; update when those commands or processes change. |
-| [CHANGELOG.md](CHANGELOG.md)               | User-visible changes for each release; update before preparing a release.                                               |
-| [LICENSE](LICENSE)                         | License terms for the project's original code; keep licensing statements consistent with this file.                     |
+| File                                       | Purpose and update conditions                                                                                                                              |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [README.md](README.md)                     | Project overview, installation, basic operations, project policy, and document index; update when these change.                                            |
+| [AGENTS.md](AGENTS.md)                     | Project-specific editing instructions; update when the repository's working rules or references change.                                                    |
+| [docs/usage.md](docs/usage.md)             | Input rules, recognition limits, shared and per-note appearance settings, panel actions, in-note navigation, and search caveats. Update when these change. |
+| [docs/development.md](docs/development.md) | Build, test, manual checks, version preparation, and release procedure; update when those commands or processes change.                                    |
+| [CHANGELOG.md](CHANGELOG.md)               | User-visible changes for each release; update before preparing a release.                                                                                  |
+| [LICENSE](LICENSE)                         | License terms for the project's original code; keep licensing statements consistent with this file.                                                        |

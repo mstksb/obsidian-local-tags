@@ -14,6 +14,7 @@ export function createDom(html) {
       element.setAttribute(name, value);
     return element;
   };
+  dom.window.createDiv = (options) => dom.window.createEl('div', options);
   dom.window.createSpan = (options) => dom.window.createEl('span', options);
   dom.window.createFragment = () => document.createDocumentFragment();
   dom.window.HTMLElement.prototype.createEl = function (tag, options) {
