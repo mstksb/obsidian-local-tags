@@ -20,6 +20,40 @@ Check [Releases](https://github.com/mstksb/obsidian-local-tags/releases) for pub
 
 - Optionally hide `##` in Reading View and on inactive tags in Live Preview.
 
+## See it in action
+
+Completion, hierarchical tag lists, and click-to-search follow familiar tag interactions. Local Tags adds a separate vocabulary for each note, per-note random decoration, and Shift-click navigation.
+
+### Complete tags as you type
+
+Type `##`, narrow the suggestions, and press Enter to insert a tag. Suggestions come from the current Markdown file. With substring matching, `##rev` finds `##launch/review`.
+
+![Typing a partial tag, choosing a completion, and inserting the full tag](assets/demos/completion.gif)
+
+### Keep each note's tags local
+
+Switch from Launch plan to Garden plan to see both the completion suggestions and the tag panel follow the active note. Standard `#tags` are indexed across the vault. Local `##tags` have a separate vocabulary in each file.
+
+![Switching notes changes the local tag list and completion suggestions](assets/demos/file-local-tags.gif)
+
+### Add color with one click
+
+Choose **Random decoration** to generate vivid complementary colors for the current note's tags. The demo uses Live Preview. Decoration settings are stored in the note's `local-tags-config` section.
+
+![Random decoration changes the colors of tags in the note and tag panel](assets/demos/random-decoration.gif)
+
+### Shift-click to move between occurrences
+
+Hold Shift and click a tag in the panel to visit its occurrences in the current note. A line highlight and an outline around the matching tag show the current position.
+
+![Shift-clicking a tag cycles through three highlighted occurrences](assets/demos/shift-click-navigation.gif)
+
+### Click to open Obsidian Search
+
+Click a tag in the panel to open Obsidian's standard Search pane, with the current file and tag text filled in. Search results stay scoped to that note.
+
+![Clicking a tag opens the standard Search pane with results from the current note](assets/demos/click-search.gif)
+
 ## Requirements
 
 Desktop Obsidian `1.14.4` or later. Local Tags is a desktop-only plugin.

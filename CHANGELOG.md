@@ -4,6 +4,10 @@ User-visible changes are recorded here. Entries under `[Unreleased]` have not be
 
 ## [Unreleased]
 
+### Documentation
+
+- Add animated README walkthroughs for completion, file-local tag vocabularies, random decoration, in-note navigation, and current-file search.
+
 ## [0.4.1] - 2026-11-09
 
 ### Fixed
