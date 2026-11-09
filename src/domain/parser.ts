@@ -63,11 +63,20 @@ function overlaps(a: Span, b: Span): boolean {
   return a.from < b.to && b.from < a.to;
 }
 
+const markdownTrees = new Map<string, SyntaxNode>();
+
+/** Callers treat shared syntax trees as read-only. */
 export function markdownTree(source: string): SyntaxNode {
-  return fromMarkdown(source, {
+  const cached = markdownTrees.get(source);
+  if (cached) return cached;
+  const tree = fromMarkdown(source, {
     extensions: [frontmatter(['yaml']), gfm()],
     mdastExtensions: [frontmatterFromMarkdown(['yaml']), gfmFromMarkdown()],
   });
+  // Keep the original and comment-masked trees without retaining document history.
+  if (markdownTrees.size === 2) markdownTrees.delete(markdownTrees.keys().next().value!);
+  markdownTrees.set(source, tree);
+  return tree;
 }
 
 /** Obsidian accepts arbitrary callout types; their marker is metadata, not inline HTML. */

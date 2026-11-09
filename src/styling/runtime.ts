@@ -11,7 +11,12 @@ import type { ReadingDocument } from '../reading-source.ts';
 import { contrastRatio, resolveStyle, styleProperties } from './appearance.ts';
 import { parse } from '../domain/parser.ts';
 import { readDefinitions, tagAtPosition } from './document.ts';
-import { closeStylingPickers, foldSettings, stylingEditorExtension } from './editor.ts';
+import {
+  closeStylingPickers,
+  foldSettings,
+  settingsSnapshot,
+  stylingEditorExtension,
+} from './editor.ts';
 import type { Diagnostic, Operation, PaletteOptions, RandomOptions, TagStyle } from './types.ts';
 import { StylingPanel } from './panel.ts';
 import type { PanelAction } from './panel.ts';
@@ -472,7 +477,11 @@ export class StylingFeature {
         view.state.doc !== doc
       )
         return;
-      void this.reload(file, { kind: 'editor', source: doc.toString(), editor });
+      // Embedded table editors share the note's Editor but contain only a cell.
+      const source = view.dom.parentElement?.closest('.cm-editor')
+        ? editor.getValue()
+        : doc.toString();
+      void this.reload(file, { kind: 'editor', source, editor });
     });
   }
 
@@ -538,7 +547,12 @@ export class StylingFeature {
       const editor = this.editorFor(panel);
       let target: string | null = null;
       if (editor && editor.state.selection.ranges.length === 1) {
-        const tag = tagAtPosition(editor.state.doc.toString(), editor.state.selection.main.head);
+        const snapshot = settingsSnapshot(editor);
+        const tag = tagAtPosition(
+          snapshot.source,
+          editor.state.selection.main.head,
+          snapshot.layout,
+        );
         if (tag !== null) target = `##${tag}`;
       }
       panel.view.render({

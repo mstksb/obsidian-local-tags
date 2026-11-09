@@ -1,12 +1,29 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parse } from '../src/domain/parser.ts';
+import { markdownTree, parse } from '../src/domain/parser.ts';
 import { PrivateTagIndex } from '../src/domain/index.ts';
 
 const names = (source) =>
   parse(source)
     .filter((tag) => tag.kind === 'valid')
     .map((tag) => tag.name);
+
+test('shared parsing distinguishes masked comments and keeps candidate results independent', () => {
+  const comment = '<!-- ##hidden -->';
+  const source = `##visible\n\n${comment}\n`;
+  const masked = source.replace(comment, ' '.repeat(comment.length));
+  const originalTree = markdownTree(source);
+  const maskedTree = markdownTree(masked);
+  assert.notEqual(maskedTree, originalTree);
+  assert.equal(markdownTree(source), originalTree);
+  assert.equal(markdownTree(masked), maskedTree);
+  const candidates = parse(source);
+  candidates[0].name = 'changed';
+  candidates.length = 0;
+  assert.deepEqual(names(source), ['visible']);
+  markdownTree('##another-document');
+  assert.notEqual(markdownTree(source), originalTree);
+});
 
 test('tags accept Unicode names and hierarchy with strict prefix and escaping rules', () => {
   assert.deepEqual(names('##人物/田中 ##-draft ##_note ##😀/予定?next'), [

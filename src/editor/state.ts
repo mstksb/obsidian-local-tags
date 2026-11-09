@@ -32,6 +32,15 @@ export function updateModel(previous: DocumentModel, transaction: Transaction): 
       transaction.isUserEvent(event),
     );
   if (forced) return fresh(transaction.newDoc.toString());
+  if (
+    !transaction.docChanged &&
+    previous.pending.every((editing) =>
+      transaction.state.selection.ranges.some(
+        (selection) => selection.head >= editing.from && selection.head <= editing.to,
+      ),
+    )
+  )
+    return previous;
   const candidates = transaction.docChanged
     ? parse(transaction.newDoc.toString())
     : previous.candidates;

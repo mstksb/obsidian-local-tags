@@ -5,6 +5,76 @@ import { fixture, app } from './helpers/bundle.mjs';
 
 const { decorateReading, clearReading } = fixture;
 
+test('ordinary caret movement reuses tag state while tag contact updates prefix visibility', () => {
+  const {
+    CurrentDocumentController,
+    EditorState,
+    EditorView,
+    documentField,
+    editorExtension,
+    editorLivePreviewField,
+  } = fixture;
+  const controller = new CurrentDocumentController(app(), '0.4.1');
+  const source = '##alpha body text';
+  let state = EditorState.create({
+    doc: source,
+    selection: { anchor: source.length },
+    extensions: [
+      editorExtension(controller, undefined, () => true),
+      editorLivePreviewField.init(() => true),
+    ],
+  });
+  const model = state.field(documentField);
+  const decorations = state.facet(EditorView.decorations)[0];
+  assert.equal(decorations.size, 2);
+  state = state.update({ selection: { anchor: source.length - 1 } }).state;
+  assert.equal(state.field(documentField), model);
+  assert.equal(state.facet(EditorView.decorations)[0], decorations);
+  state = state.update({ selection: { anchor: 3 } }).state;
+  assert.equal(state.field(documentField), model);
+  assert.notEqual(state.facet(EditorView.decorations)[0], decorations);
+  assert.equal(state.facet(EditorView.decorations)[0].size, 1);
+  assert.equal(state.doc.toString(), source);
+  controller.dispose();
+});
+
+test('leaving an edited tag still commits its name and restores decoration', () => {
+  const {
+    CurrentDocumentController,
+    EditorState,
+    EditorView,
+    documentField,
+    editorExtension,
+    editorLivePreviewField,
+  } = fixture;
+  const controller = new CurrentDocumentController(app(), '0.4.1');
+  let state = EditorState.create({
+    doc: '##alpha body text',
+    selection: { anchor: 7 },
+    extensions: [
+      editorExtension(controller, undefined, () => true),
+      editorLivePreviewField.init(() => true),
+    ],
+  });
+  state = state.update({ changes: { from: 7, insert: 'x' }, selection: { anchor: 8 } }).state;
+  const editing = state.field(documentField);
+  assert.equal(editing.pending.length, 1);
+  assert.deepEqual(
+    editing.committed.map((tag) => tag.name),
+    ['alpha'],
+  );
+  state = state.update({ selection: { anchor: state.doc.length } }).state;
+  assert.notEqual(state.field(documentField), editing);
+  assert.deepEqual(state.field(documentField).pending, []);
+  assert.deepEqual(
+    state.field(documentField).committed.map((tag) => tag.name),
+    ['alphax'],
+  );
+  assert.equal(state.facet(EditorView.decorations)[0].size, 2);
+  assert.equal(state.doc.toString(), '##alphax body text');
+  controller.dispose();
+});
+
 test('rendering decorates visible tags and errors without changing text or links', () => {
   const dom = createDom(
     '<main><p>##people ##people/ <code>##code</code> <a href="#">##link</a> after ##visible</p></main>',

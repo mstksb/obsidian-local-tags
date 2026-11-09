@@ -48,6 +48,12 @@ Keep expectations based on documented behavior. A test should detect a meaningfu
 
 ## Build output
 
+The parser shares read-only Markdown syntax trees for identical source text, retaining at most two versions for the original and comment-masked text. Consumers must not modify these trees. Tag candidate arrays and their entries remain independent between parse calls.
+
+Live Preview tables create embedded CodeMirror editors whose documents contain individual cells.
+Read decoration settings from the owning note's editor, and keep the current-file index attached
+to the full-note editor when the caret enters an embedded editor.
+
 `npm run build` writes the distribution to `dist/local-tags/`:
 
 - `main.js`: minified plugin code, including the complete GPL v3 text and applicable third-party notices.

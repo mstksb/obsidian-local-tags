@@ -10,6 +10,18 @@ import type { CurrentDocumentController } from '../services/controller.ts';
 
 export const refreshTagDisplay = StateEffect.define<null>();
 
+function prefixSelectionChanged(before: EditorState, after: EditorState): boolean {
+  if (!after.field(editorLivePreviewField, false)) return false;
+  return after
+    .field(documentField)
+    .candidates.some(
+      (candidate) =>
+        candidate.kind === 'valid' &&
+        selectionTouchesTag(before.selection, candidate) !==
+          selectionTouchesTag(after.selection, candidate),
+    );
+}
+
 const decorations = (hidePrefix = () => false) =>
   StateField.define<DecorationSet>({
     create: (state) => build(state, hidePrefix()),
@@ -26,7 +38,9 @@ const decorations = (hidePrefix = () => false) =>
       return before === after &&
         sameMode &&
         sameHighlight &&
-        !transaction.selection &&
+        (!transaction.selection ||
+          !hidePrefix() ||
+          !prefixSelectionChanged(transaction.startState, transaction.state)) &&
         !transaction.effects.some((effect) => effect.is(refreshTagDisplay))
         ? previous
         : build(transaction.state, hidePrefix());
@@ -120,8 +134,11 @@ export function editorExtension(
             controller.observe(update.view);
           if (
             update.docChanged ||
+            update.startState.field(documentField) !== update.state.field(documentField) ||
             update.viewportChanged ||
-            (update.selectionSet && hidePrefix()) ||
+            (update.selectionSet &&
+              hidePrefix() &&
+              prefixSelectionChanged(update.startState, update.state)) ||
             fileChanged ||
             update.transactions.some((transaction) =>
               transaction.effects.some((effect) => effect.is(refreshTagDisplay)),

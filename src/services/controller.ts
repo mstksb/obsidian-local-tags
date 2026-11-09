@@ -25,7 +25,8 @@ export class CurrentDocumentController {
 
   observe(view: EditorView): void {
     queueMicrotask(() => {
-      if (this.disposed || !this.views.has(view)) return;
+      if (this.disposed || !this.views.has(view) || view.dom?.parentElement?.closest('.cm-editor'))
+        return;
       const info = view.state.field(editorInfoField, false);
       if (!info?.file || info.file.extension !== 'md') return;
       if (view.hasFocus && (this.currentView !== view || this.file !== info.file)) {
@@ -35,8 +36,10 @@ export class CurrentDocumentController {
         this.currentView = view;
       }
       if (this.currentView === view && this.file === info.file) {
+        const previous = this.model;
         this.model = view.state.field(documentField);
-        this.index.replace(info.file.path, this.model.committed);
+        if (previous?.committed !== this.model.committed || this.index.path !== info.file.path)
+          this.index.replace(info.file.path, this.model.committed);
         this.emit();
       }
     });
@@ -45,7 +48,11 @@ export class CurrentDocumentController {
   findView(editor?: Editor, file = this.file): EditorView | undefined {
     return [...this.views].find((view) => {
       const info = view.state.field(editorInfoField, false);
-      return info?.file === file && (!editor || info.editor === editor);
+      return (
+        !view.dom?.parentElement?.closest('.cm-editor') &&
+        info?.file === file &&
+        (!editor || info.editor === editor)
+      );
     });
   }
 

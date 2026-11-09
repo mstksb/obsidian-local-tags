@@ -4,6 +4,14 @@ User-visible changes are recorded here. Entries under `[Unreleased]` have not be
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-11-09
+
+### Fixed
+
+- Reduce typing lag in Source mode and Live Preview by sharing Markdown syntax trees and reusing cached per-document settings.
+- Reuse tag decorations and the current-file index during ordinary cursor movement while preserving updates when editing tags or revealing their prefixes.
+- Preserve per-note tag decoration and the full tag list when moving the caret into or out of Live Preview tables and editing table cells.
+
 ## [0.4.0] - 2026-11-08
 
 ### Added
