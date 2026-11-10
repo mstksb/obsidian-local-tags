@@ -70,6 +70,7 @@ export default class LocalTagsPlugin extends Plugin {
         this.controller,
         () => this.settings.completionMatchMode,
         () => this.settings.completionCaseSensitive,
+        this.styling,
       ),
     );
     this.addCommand({

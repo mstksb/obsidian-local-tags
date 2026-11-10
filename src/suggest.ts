@@ -10,12 +10,14 @@ import { candidateAt } from './domain/parser.ts';
 import { config } from './config.ts';
 import type { CompletionMatchMode } from './domain/index.ts';
 import type { CurrentDocumentController } from './services/controller.ts';
+import type { StylingFeature } from './styling/runtime.ts';
 
 export class PrivateTagSuggest extends EditorSuggest<string> {
   constructor(
     private readonly controller: CurrentDocumentController,
     private readonly completionMatchMode: () => CompletionMatchMode = () => 'substring',
     private readonly completionCaseSensitive: () => boolean = () => false,
+    private readonly styling?: Pick<StylingFeature, 'synopsis'>,
   ) {
     super(controller.app);
   }
@@ -52,7 +54,21 @@ export class PrivateTagSuggest extends EditorSuggest<string> {
   }
 
   renderSuggestion(name: string, element: HTMLElement): void {
+    const file = this.context?.file;
+    const synopsis =
+      file && file.path === this.controller.index.path
+        ? this.styling?.synopsis(file, name)
+        : undefined;
+    element.classList.toggle('local-tags-suggestion', Boolean(synopsis));
     element.textContent = `##${name}`;
+    if (!synopsis) return;
+    const label = element.createSpan();
+    label.className = 'local-tags-suggestion-name';
+    label.textContent = `##${name}`;
+    const description = element.createSpan();
+    description.className = 'local-tags-suggestion-synopsis';
+    description.textContent = synopsis;
+    element.replaceChildren(label, description);
   }
 
   selectSuggestion(name: string, event: MouseEvent | KeyboardEvent): void {

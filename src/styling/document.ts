@@ -28,6 +28,7 @@ interface Property {
 }
 interface Entry {
   name: string;
+  synopsis: string;
   node: Node;
   list: Node;
   style?: Node;
@@ -118,6 +119,19 @@ function maskComments(source: string): {
   return { masked: masked.join('') + source.slice(copied), comments };
 }
 
+function synopsisText(source: string, comments: SourceRange[], from: number, to: number): string {
+  const parts: string[] = [];
+  let cursor = from;
+  for (const comment of comments) {
+    if (comment.to <= cursor) continue;
+    if (comment.from >= to) break;
+    parts.push(source.slice(cursor, Math.max(cursor, comment.from)));
+    cursor = Math.min(to, comment.to);
+  }
+  parts.push(source.slice(cursor, to));
+  return parts.join('').trim();
+}
+
 function document(source: string): Document {
   const { masked, comments } = maskComments(source);
   const tree: Node = markdownTree(masked);
@@ -128,6 +142,7 @@ function document(source: string): Document {
     comments,
     entries: [],
     definitions: new Map(),
+    synopses: new Map(),
     invalidTags: new Set(),
     diagnostics: [],
     ambiguous: false,
@@ -189,6 +204,12 @@ function document(source: string): Document {
       const name = match[1] ?? '';
       const entry: Entry = {
         name,
+        synopsis: synopsisText(
+          source,
+          comments,
+          start(node) + match[0].length,
+          start(node) + line.length,
+        ),
         node,
         list,
         properties: [],
@@ -269,6 +290,13 @@ function document(source: string): Document {
     diagnostic('error', 'Configuration entries are split across separate lists', heading);
   }
   for (const entry of result.entries) {
+    if (
+      entry.synopsis &&
+      validName(entry.name) &&
+      names.get(entry.name)?.length === 1 &&
+      !independentLists
+    )
+      result.synopses.set(entry.name, entry.synopsis);
     if (entry.invalid) result.invalidTags.add(entry.name);
     else
       result.definitions.set(
@@ -284,8 +312,8 @@ function document(source: string): Document {
 }
 
 export function readDefinitions(source: string): Definitions {
-  const { definitions, invalidTags, diagnostics, ambiguous } = document(source);
-  return { definitions, invalidTags, diagnostics, ambiguous };
+  const { definitions, synopses, invalidTags, diagnostics, ambiguous } = document(source);
+  return { definitions, synopses, invalidTags, diagnostics, ambiguous };
 }
 
 /** Returns original source coordinates without changing configuration state. */

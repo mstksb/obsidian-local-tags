@@ -4,10 +4,22 @@ User-visible changes are recorded here. Entries under `[Unreleased]` have not be
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-10
+
+### Added
+
+- Define a description on the same line as a tag declaration under `local-tags-config`, scoped to the current note and complete tag name.
+- Show descriptions beside completion suggestions and in note and tag-panel tooltips, including keyboard focus in the panel. Completion still inserts only the tag name and a trailing space.
+
+### Changed
+
+- Show click and Shift+click instructions above the tag panel's list so tag hover can display its description.
+
 ### Documentation
 
 - Accept bug reports through GitHub Issues on a best-effort basis and allow feature requests with very low priority.
 - Add animated README walkthroughs for completion, file-local tag vocabularies, random decoration, in-note navigation, and current-file search.
+- Add a README walkthrough for tag descriptions in completion suggestions and note and panel tooltips.
 
 ## [0.4.1] - 2026-11-09
 

@@ -8,6 +8,7 @@ Check [Releases](https://github.com/mstksb/obsidian-local-tags/releases) for pub
 
 - Write tags such as `##project` and hierarchical tags such as `##people/Alex`.
 - Complete tag names from the current Markdown file.
+- Show per-note tag descriptions beside completion suggestions and in tooltips in the note and tag panel.
 - Choose substring or prefix completion matching, with optional case sensitivity.
 - Display tags in Source mode, Live Preview, and Reading View.
 - Browse the current file's tags in a hierarchical panel.
@@ -35,6 +36,12 @@ Type `##`, narrow the suggestions, and press Enter to insert a tag. Suggestions 
 Switch from Launch plan to Garden plan to see both the completion suggestions and the tag panel follow the active note. Standard `#tags` are indexed across the vault. Local `##tags` have a separate vocabulary in each file.
 
 ![Switching notes changes the local tag list and completion suggestions](assets/demos/file-local-tags.gif)
+
+### Keep tag meanings close at hand
+
+Add a short description after a tag declaration on the same line under `local-tags-config`. Descriptions appear beside completion suggestions and when you hover over a tag in the note or tag panel. Press Enter to insert just the tag. See [Tag descriptions](docs/usage.md#tag-descriptions) for the format.
+
+![Tag descriptions appear in completion suggestions and on hover in the note and tag panel](assets/demos/tag-summaries.gif)
 
 ### Add color with one click
 
@@ -75,7 +82,7 @@ After replacing an installed build, disable and re-enable the plugin. If a new i
 
 Local tags use `##` and are separate from Obsidian's standard `#tags`.
 
-See [Usage](docs/usage.md) for input rules, recognition limits, shared appearance settings, per-note decoration, panel actions, in-note navigation, and search caveats.
+See [Usage](docs/usage.md) for input rules, recognition limits, shared appearance settings, per-note decoration, tag descriptions, panel actions, in-note navigation, and search caveats.
 
 ## Limitations
 
@@ -106,11 +113,11 @@ Third-party components retain their respective licenses. Their notices are gener
 
 ## Documentation and updates
 
-| File                                       | Purpose and update conditions                                                                                                                              |
-| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [README.md](README.md)                     | Project overview, installation, basic operations, project policy, and document index; update when these change.                                            |
-| [AGENTS.md](AGENTS.md)                     | Project-specific editing instructions; update when the repository's working rules or references change.                                                    |
-| [docs/usage.md](docs/usage.md)             | Input rules, recognition limits, shared and per-note appearance settings, panel actions, in-note navigation, and search caveats. Update when these change. |
-| [docs/development.md](docs/development.md) | Build, test, manual checks, version preparation, and release procedure; update when those commands or processes change.                                    |
-| [CHANGELOG.md](CHANGELOG.md)               | User-visible changes for each release; update before preparing a release.                                                                                  |
-| [LICENSE](LICENSE)                         | License terms for the project's original code; keep licensing statements consistent with this file.                                                        |
+| File                                       | Purpose and update conditions                                                                                                                                                |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [README.md](README.md)                     | Project overview, installation, basic operations, project policy, and document index; update when these change.                                                              |
+| [AGENTS.md](AGENTS.md)                     | Project-specific editing instructions; update when the repository's working rules or references change.                                                                      |
+| [docs/usage.md](docs/usage.md)             | Input rules, recognition limits, shared and per-note appearance settings, tag descriptions, panel actions, in-note navigation, and search caveats. Update when these change. |
+| [docs/development.md](docs/development.md) | Build, test, manual checks, version preparation, and release procedure; update when those commands or processes change.                                                      |
+| [CHANGELOG.md](CHANGELOG.md)               | User-visible changes for each release; update before preparing a release.                                                                                                    |
+| [LICENSE](LICENSE)                         | License terms for the project's original code; keep licensing statements consistent with this file.                                                                          |

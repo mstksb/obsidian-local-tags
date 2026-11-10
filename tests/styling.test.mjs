@@ -9,6 +9,49 @@ import {
 import { resolveStyle } from '../src/styling/appearance.ts';
 import { paletteStyles } from '../src/styling/palette.ts';
 
+test('tag descriptions use only visible same-line text from exact tag definitions', () => {
+  const source = [
+    '# local-tags-config',
+    '- ##project  Project %%hidden%%description<!-- hidden -->  ',
+    '  continuation is not part of the description',
+    '  - bold: on',
+    '- ##project/review',
+    '  - details Child content is not a description',
+    '- ##project/other **Own** `%%literal%%` <b>description</b>',
+    '- ##comment-only %%hidden%% <!-- hidden -->',
+    '',
+    '# Notes',
+    '- ##outside Outside settings',
+  ].join('\r\n');
+  const parsed = readDefinitions(source);
+  assert.deepEqual(
+    [...parsed.synopses],
+    [
+      ['project', 'Project description'],
+      ['project/other', '**Own** `%%literal%%` <b>description</b>'],
+    ],
+  );
+  assert.deepEqual(parsed.definitions.get('project'), { bold: 'on' });
+  assert.equal(readDefinitions('# Notes\n- ##tag Outside settings\n').synopses.size, 0);
+});
+
+test('invalid decoration values preserve descriptions while ambiguous definitions suppress them', () => {
+  const parsed = readDefinitions(
+    '# local-tags-config\n- ##project Project description\n  - bold: invalid\n' +
+      '- ##duplicate First\n- ##duplicate Second\n',
+  );
+  assert.equal(parsed.ambiguous, true);
+  assert.deepEqual([...parsed.synopses], [['project', 'Project description']]);
+  for (const source of [
+    '# local-tags-config\n- ##a First\n# local-tags-config\n- ##b Second\n',
+    '# local-tags-config\n- ##a First\n\nOrdinary prose\n\n- ##b Second\n',
+  ]) {
+    const ambiguous = readDefinitions(source);
+    assert.equal(ambiguous.ambiguous, true);
+    assert.equal(ambiguous.synopses.size, 0);
+  }
+});
+
 test('per-note decoration inherits missing and empty settings while applying child overrides', () => {
   const source = `## local-tags-config
 

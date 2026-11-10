@@ -83,6 +83,12 @@ For [per-note decoration](usage.md#per-note-decoration), also check the followin
 - Check **Sort settings**, **Expand to tag headings** in editing mode, and applying or canceling a color change through an inline swatch.
 - Confirm that configuration errors and unsafe comment insertions prevent writes, and that unrelated note content remains intact.
 
+For [tag descriptions](usage.md#tag-descriptions), check completion rows, Enter insertion, note tooltips in all three modes, and panel hover and keyboard focus. Check that click and Shift+click instructions appear above the panel's tag list.
+
+- Confirm exact tag-name and file scoping, separate child descriptions, and plain-text display after comment removal.
+- Edit or remove a description and switch files to check that previous descriptions disappear. Check the documented duplicate-definition and configuration-structure behavior.
+- Dismiss a tooltip with Esc, scrolling, or a file switch, then disable the plugin and check that the tooltip closes.
+
 Use the same version of the source, settings, and distribution for verification and release. Keep the vault's notes and existing settings when replacing the runtime files.
 
 Once a release is approved for Obsidian's community directory, also check installation or update through Obsidian's community-plugin settings.

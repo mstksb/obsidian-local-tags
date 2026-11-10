@@ -7,6 +7,8 @@ import type { CurrentDocumentController } from './services/controller.ts';
 import { localTagsIconId } from './icons.ts';
 import type { StylingFeature } from './styling/runtime.ts';
 
+let nextTreeLabelId = 0;
+
 export class PrivateTagView extends ItemView {
   private displayedPath: string | null = null;
   private list: HTMLUListElement | null = null;
@@ -61,8 +63,11 @@ export class PrivateTagView extends ItemView {
       return list;
     };
     if (!this.list) {
+      const help = ownerWindow.createDiv();
+      help.className = 'local-tags-panel-help';
+      help.textContent = 'Click to search, Shift+click for the next occurrence';
       this.list = makeList();
-      this.contentEl.append(this.list);
+      this.contentEl.append(help, this.list);
     }
     const visited = new Set<string>();
     const drawNodes = (nodes: TreeNode[], list: HTMLUListElement): void => {
@@ -76,10 +81,11 @@ export class PrivateTagView extends ItemView {
           anchor.className = 'local-tags-tree-link';
           anchor.dataset.localTag = node.path;
           anchor.textContent = node.name;
-          anchor.setAttribute(
-            'aria-label',
-            `${node.path}: Click to search, Shift+click for the next occurrence`,
-          );
+          const label = ownerWindow.createSpan();
+          label.id = `local-tags-tree-label-${++nextTreeLabelId}`;
+          label.hidden = true;
+          label.textContent = node.path;
+          anchor.setAttribute('aria-labelledby', label.id);
           const query = buildSearchQuery(path, `##${node.path}`);
           anchor.href = buildSearchUri(this.app.vault.getName(), query);
           anchor.addEventListener('click', (event) => {
@@ -100,7 +106,7 @@ export class PrivateTagView extends ItemView {
               this.navigate(node.path, path);
             }
           });
-          item.append(anchor);
+          item.append(anchor, label);
           row = { item, anchor, children: null };
           this.rows.set(node.path, row);
         }

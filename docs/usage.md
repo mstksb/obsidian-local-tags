@@ -1,6 +1,6 @@
 # Usage
 
-Start with the [README Quick start](../README.md#quick-start) for tag entry, completion, the tag panel, and search. This guide covers input rules, recognition limits, shared and per-note appearance settings, panel actions, in-note navigation, and search caveats.
+Start with the [README Quick start](../README.md#quick-start) for tag entry, completion, the tag panel, and search. This guide covers input rules, recognition limits, shared and per-note appearance settings, tag descriptions, panel actions, in-note navigation, and search caveats.
 
 ## Input rules
 
@@ -96,7 +96,7 @@ Configuration changes are reflected as the note is edited or changed externally.
 
 ### Tag panel actions
 
-Run **Open tag panel** and expand **Settings, actions and messages**. Its summary shows **Errors** with the current error count, and the area opens when a new error is reported. Messages identify the affected line and tag when available.
+Run **Open tag panel**. Click and Shift+click instructions appear above the tag list. Expand **Settings, actions and messages**. Its summary shows **Errors** with the current error count, and the area opens when a new error is reported. Messages identify the affected line and tag when available.
 
 The **Target** display shows the tag whose configuration block contains the editor caret. Anywhere else, it shows **All tags**. In Reading View, the target is **All tags**. This target controls **Random decoration**.
 
@@ -134,6 +134,23 @@ Random decoration uses a fixed vivid complementary palette for text, background,
 ### Color swatches
 
 In Source mode or Live Preview, click the swatch beside a valid color in the configuration. Enter a six-digit hex color or adjust the hue, saturation, and lightness sliders, then choose **Apply**. **Cancel** or Esc closes the picker. If the note changes while the picker is open, the update is canceled to protect the edited text.
+
+## Tag descriptions
+
+Put a description after the complete tag name on the same declaration line in the note's `local-tags-config` section.
+
+```md
+## local-tags-config
+
+- ##project Work owned by this project
+- ##project/review Review tasks for this project
+```
+
+The description belongs to that exact, case-sensitive tag name in the current note. Add a separate description for each child tag. Only text on the declaration line is included. Obsidian and HTML comments are removed and surrounding whitespace is trimmed. Markdown and HTML in the remaining description are displayed as plain text.
+
+Descriptions appear beside every matching completion suggestion. Pressing Enter inserts the tag name and a trailing space. Hover over a tag in Source mode, Live Preview, Reading View, or the tag panel to show its description after a short delay. Focusing a panel tag with the keyboard shows it immediately. Press Esc or move away to dismiss it.
+
+Descriptions refresh when the note changes. Invalid decoration values can report errors while the description remains available. Duplicate definitions suppress the affected tag's description. Multiple configuration headings or separate definition lists suppress all descriptions until the structure is corrected.
 
 ## In-note navigation
 

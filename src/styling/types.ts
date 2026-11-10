@@ -48,6 +48,7 @@ export interface Diagnostic {
 
 export interface Definitions {
   definitions: Map<string, TagStyle>;
+  synopses: Map<string, string>;
   invalidTags: Set<string>;
   diagnostics: Diagnostic[];
   ambiguous: boolean;

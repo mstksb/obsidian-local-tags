@@ -21,6 +21,7 @@ import type { Diagnostic, Operation, PaletteOptions, RandomOptions, TagStyle } f
 import { StylingPanel } from './panel.ts';
 import type { PanelAction } from './panel.ts';
 import { DocumentWriter } from './write.ts';
+import { TagTooltips } from './tooltip.ts';
 
 type SourceOverride =
   | { kind: 'editor'; source: string; editor: Editor }
@@ -29,6 +30,7 @@ type SourceOverride =
 interface FileState {
   source?: string;
   definitions: Map<string, TagStyle>;
+  synopses: Map<string, string>;
   lastGood: Map<string, TagStyle>;
   fallbackTags: Set<string>;
   diagnostics: Diagnostic[];
@@ -68,6 +70,7 @@ export class StylingFeature {
   private readonly scopes = new Map<TFile, string>();
   private readonly generations = new Map<TFile, object>();
   private readonly roots = new Map<HTMLElement, StyledRoot>();
+  private readonly tooltips = new Map<Document, TagTooltips>();
   private readonly editors = new Set<EditorView>();
   private editorRefreshScheduled = false;
   private readonly panels = new Set<Panel>();
@@ -119,10 +122,16 @@ export class StylingFeature {
     this.owner.registerEvent(
       this.app.workspace.on('file-open', (file) => {
         closeStylingPickers();
+        this.hideTooltips();
         if (file?.extension === 'md') void this.reload(file);
       }),
     );
-    this.owner.registerEvent(this.app.workspace.on('active-leaf-change', () => this.refresh()));
+    this.owner.registerEvent(
+      this.app.workspace.on('active-leaf-change', () => {
+        this.hideTooltips();
+        this.refresh();
+      }),
+    );
     this.owner.registerEvent(
       this.app.workspace.on('editor-change', (_editor, info) => {
         if (info.file) void this.reload(info.file);
@@ -162,6 +171,27 @@ export class StylingFeature {
     this.refresh();
   }
 
+  synopsis(file: TFile, name: string): string | undefined {
+    return this.active ? this.states.get(file)?.synopses.get(name) : undefined;
+  }
+
+  private hideTooltips(): void {
+    for (const tooltip of this.tooltips.values()) tooltip.hide();
+  }
+
+  private synopsisFor(target: HTMLElement) {
+    if (!this.active) return null;
+    const root = target.closest<HTMLElement>('[data-local-tag-scope]');
+    if (!root) return null;
+    const file = this.roots.get(root)?.file;
+    const name = target.dataset.localTag;
+    if (!file || !name) return null;
+    const scope = this.scopes.get(file);
+    if (!scope || scope !== root.dataset.localTagScope) return null;
+    const text = this.synopsis(file, name);
+    return text ? { scope, name, text } : null;
+  }
+
   private views(file?: TFile): MarkdownView[] {
     return this.app.workspace
       .getLeavesOfType('markdown')
@@ -177,6 +207,7 @@ export class StylingFeature {
     if (!state) {
       state = {
         definitions: new Map(),
+        synopses: new Map(),
         lastGood: new Map(),
         fallbackTags: new Set(),
         diagnostics: [],
@@ -243,6 +274,7 @@ export class StylingFeature {
       const state = this.state(file);
       state.source = source;
       state.diagnostics = parsed.diagnostics;
+      state.synopses = parsed.synopses;
       state.names = [
         ...new Set(
           parse(source)
@@ -265,6 +297,7 @@ export class StylingFeature {
     } catch (error) {
       if (this.active && this.generations.get(file) === request) {
         const state = this.state(file);
+        state.synopses.clear();
         state.diagnostics = [{ severity: 'error', message: String(error) }];
       }
     }
@@ -578,6 +611,20 @@ export class StylingFeature {
       if (this.updateRoot(root, file, basic, basicKey)) editorStylesChanged = true;
     if (editorStylesChanged) this.refreshEditors();
     for (const root of this.roots.keys()) if (!roots.has(root)) this.detachRoot(root);
+    const documents = new Set([...roots.keys()].map((root) => root.ownerDocument));
+    for (const document of documents) {
+      let tooltip = this.tooltips.get(document);
+      if (!tooltip) {
+        tooltip = new TagTooltips(document, (target) => this.synopsisFor(target));
+        this.tooltips.set(document, tooltip);
+      }
+      tooltip.refresh();
+    }
+    for (const [document, tooltip] of this.tooltips)
+      if (!documents.has(document)) {
+        tooltip.dispose();
+        this.tooltips.delete(document);
+      }
   }
 
   private updateRoot(
@@ -743,6 +790,8 @@ export class StylingFeature {
     if (!this.active) return;
     this.active = false;
     closeStylingPickers();
+    for (const tooltip of this.tooltips.values()) tooltip.dispose();
+    this.tooltips.clear();
     this.writer.dispose();
     this.refreshEditors();
     for (const panel of [...this.panels]) this.detachPanel(panel);

@@ -30,6 +30,13 @@ span.local-tags-error {
   text-decoration: underline;
 }
 
+.local-tags-panel-help {
+  margin-bottom: var(--size-2-2);
+  color: var(--text-faint);
+  font-size: var(--font-smallest);
+  line-height: var(--line-height-tight);
+}
+
 .local-tags-tree-list {
   list-style: none;
   padding-inline-start: var(--size-4-4);
@@ -74,6 +81,46 @@ span.local-tags-error {
   vertical-align: baseline;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
+}
+
+.local-tags-suggestion {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  column-gap: var(--size-4-3, 12px);
+  align-items: start;
+  white-space: normal;
+}
+
+.local-tags-suggestion-name,
+.local-tags-suggestion-synopsis {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.local-tags-suggestion-synopsis {
+  color: var(--text-muted);
+  font-size: var(--font-smaller);
+}
+
+.local-tags-suggestion.is-selected .local-tags-suggestion-synopsis {
+  color: var(--text-normal);
+}
+
+.local-tags-synopsis-tooltip {
+  position: fixed;
+  z-index: 10000;
+  pointer-events: none;
+  box-sizing: border-box;
+  padding: 6px 9px;
+  border-radius: 6px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  overflow-y: auto;
+  font-size: var(--font-ui-small);
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  border: 1px solid var(--background-modifier-border);
+  box-shadow: var(--shadow-s);
 }
 
 .local-tags-controls {

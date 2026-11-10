@@ -5,6 +5,201 @@ import { fixture, app, file } from './helpers/bundle.mjs';
 
 const { CurrentDocumentController, PrivateTagSuggest, PrivateTagView, LocalTagsPlugin } = fixture;
 
+async function descriptionFixture() {
+  const dom = createDom('<main></main>');
+  const { document } = dom.window;
+  const source =
+    '# local-tags-config\n- ##tag1 First description\n' +
+    '- ##tag2 <b>Literal</b> **description**\n\n# Notes\n##tag1 ##tag1/child ##tag2\n';
+  const notes = new Map();
+  for (const [path, text] of [
+    ['A.md', source],
+    ['B.md', source.replace('First', 'Other')],
+  ]) {
+    const note = { file: file(path), source: text };
+    note.view = new fixture.MarkdownView(note.file, { getValue: () => note.source });
+    note.view.getMode = () => 'source';
+    note.view.getViewData = () => note.source;
+    note.view.containerEl = document.createElement('section');
+    document.querySelector('main').append(note.view.containerEl);
+    notes.set(path, note);
+  }
+  const host = app(async (target) => notes.get(target.path).source);
+  host.vault.getFileByPath = (path) => notes.get(path)?.file ?? null;
+  host.workspace.containerEl = document.querySelector('main');
+  host.workspace.getLeavesOfType = (type) =>
+    type === 'markdown' ? [...notes.values()].map(({ view }) => ({ view })) : [];
+  host.workspace.getActiveViewOfType = () => notes.get('A.md').view;
+  const plugin = new LocalTagsPlugin(host);
+  let suggest;
+  plugin.registerEditorSuggest = (value) => (suggest = value);
+  plugin.onload();
+  await plugin.settingsLoad;
+  for (const note of notes.values()) await plugin.styling.reload(note.file);
+  const timers = new Map();
+  const setTimeout = dom.window.setTimeout.bind(dom.window);
+  const clearTimeout = dom.window.clearTimeout.bind(dom.window);
+  let nextTimer = -1;
+  dom.window.setTimeout = (callback, delay, ...args) => {
+    if (delay !== 250) return setTimeout(callback, delay, ...args);
+    timers.set(nextTimer, callback);
+    return nextTimer--;
+  };
+  dom.window.clearTimeout = (timer) => {
+    if (timers.has(timer)) timers.delete(timer);
+    else clearTimeout(timer);
+  };
+  const panels = [];
+  return {
+    dom,
+    notes,
+    plugin,
+    suggest,
+    timers,
+    tooltip: () => document.querySelector('[data-local-tag-tooltip]'),
+    panel(target) {
+      const root = document.createElement('section');
+      root.append(document.createElement('div'));
+      root.firstChild.className = 'view-content';
+      document.querySelector('main').append(root);
+      panels.push(
+        plugin.styling.mountPanel(root, {
+          file: target,
+          currentView: null,
+          subscribe: () => () => {},
+          commitCurrent() {},
+        }),
+      );
+      return root;
+    },
+    tag(root, name, link = false) {
+      const tag = document.createElement(link ? 'a' : 'span');
+      tag.className = link ? 'local-tags-tree-link' : 'local-tags-tag';
+      tag.dataset.localTag = name;
+      tag.textContent = `##${name}`;
+      if (link) tag.href = '#search';
+      root.append(tag);
+      return tag;
+    },
+    hover(target) {
+      target.dispatchEvent(new dom.window.MouseEvent('mouseover', { bubbles: true }));
+    },
+    advance() {
+      for (const [timer, callback] of [...timers]) {
+        timers.delete(timer);
+        callback();
+      }
+    },
+    close() {
+      for (const detach of panels) detach();
+      plugin.onunload();
+      dom.window.close();
+    },
+  };
+}
+
+test('registered completion shows exact-file descriptions safely and inserts only the tag', async () => {
+  const h = await descriptionFixture();
+  try {
+    const a = h.notes.get('A.md');
+    const b = h.notes.get('B.md');
+    await h.plugin.controller.activate(a.file, a.view.editor);
+    let inserted;
+    h.suggest.context = {
+      file: a.file,
+      query: 'tag',
+      start: { line: 0, ch: 0 },
+      end: { line: 0, ch: 5 },
+      editor: {
+        replaceRange: (value) => (inserted = value),
+        setCursor: (value) => assert.deepEqual(value, { line: 0, ch: 7 }),
+      },
+    };
+    const names = h.suggest.getSuggestions(h.suggest.context);
+    assert.deepEqual(names, ['tag1', 'tag1/child', 'tag2']);
+    const rows = names.map((name, index) => {
+      const row = h.dom.window.document.createElement('div');
+      row.classList.toggle('is-selected', index === 0);
+      h.suggest.renderSuggestion(name, row);
+      return row;
+    });
+    assert.deepEqual(
+      rows.map((row) => row.querySelector('.local-tags-suggestion-synopsis')?.textContent),
+      ['First description', undefined, '<b>Literal</b> **description**'],
+    );
+    assert.equal(rows[2].querySelector('b'), null);
+    h.suggest.selectSuggestion('tag2', { key: 'Enter' });
+    assert.equal(inserted, '##tag2 ');
+    const row = rows[0];
+    await h.plugin.controller.activate(b.file, b.view.editor);
+    h.suggest.renderSuggestion('tag1', row);
+    assert.equal(row.textContent, '##tag1');
+    assert.equal(row.classList.contains('local-tags-suggestion'), false);
+    assert.equal(row.classList.contains('is-selected'), true);
+    h.suggest.context.file = b.file;
+    h.suggest.renderSuggestion('tag1', row);
+    assert.equal(
+      row.querySelector('.local-tags-suggestion-synopsis').textContent,
+      'Other description',
+    );
+    b.source = b.source.replace(' Other description', '');
+    await h.plugin.styling.reload(b.file);
+    h.suggest.renderSuggestion('tag1', row);
+    assert.equal(row.textContent, '##tag1');
+    assert.equal(row.querySelector('.local-tags-suggestion-synopsis'), null);
+  } finally {
+    h.close();
+  }
+});
+
+test('body and panel descriptions isolate files, update literal text, and release tooltips', async () => {
+  const h = await descriptionFixture();
+  try {
+    const a = h.notes.get('A.md');
+    const b = h.notes.get('B.md');
+    const first = h.tag(h.panel(a.file), 'tag1', true);
+    const second = h.tag(h.panel(b.file), 'tag1', true);
+    const body = h.tag(a.view.containerEl, 'tag1');
+    const child = h.tag(a.view.containerEl, 'tag1/child');
+    first.focus();
+    assert.equal(h.tooltip()?.textContent, 'First description');
+    assert.equal(first.getAttribute('aria-describedby'), h.tooltip().id);
+    second.focus();
+    assert.equal(h.tooltip()?.textContent, 'Other description');
+    h.hover(child);
+    h.advance();
+    assert.equal(h.tooltip(), null);
+    h.hover(body);
+    assert.equal(h.tooltip(), null);
+    assert.equal(h.timers.size, 1);
+    h.advance();
+    assert.equal(h.tooltip()?.textContent, 'First description');
+    assert.equal(body.hasAttribute('tabindex'), false);
+    a.source = a.source.replace('First description', '<img src=x onerror=alert(1)>');
+    await h.plugin.styling.reload(a.file);
+    assert.equal(h.tooltip()?.textContent, '<img src=x onerror=alert(1)>');
+    assert.equal(h.tooltip().children.length, 0);
+    body.dispatchEvent(new h.dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    assert.equal(h.tooltip(), null);
+    first.focus();
+    assert.equal(h.tooltip()?.textContent, '<img src=x onerror=alert(1)>');
+    a.source += '\n# local-tags-config\n- ##tag1 Ambiguous description\n';
+    await h.plugin.styling.reload(a.file);
+    assert.equal(h.tooltip(), null);
+    assert.equal(first.hasAttribute('aria-describedby'), false);
+    assert.equal(h.plugin.styling.synopsis(b.file, 'tag1'), 'Other description');
+    assert.equal(first.getAttribute('href'), '#search');
+    h.hover(second);
+    assert.equal(h.timers.size, 1);
+    h.plugin.onunload();
+    h.advance();
+    assert.equal(h.tooltip(), null);
+    assert.equal(h.timers.size, 0);
+  } finally {
+    h.close();
+  }
+});
+
 test('file changes replace candidates while auxiliary views preserve the current document', async () => {
   const controller = new CurrentDocumentController(app(), '0.1.0');
   const editor = {

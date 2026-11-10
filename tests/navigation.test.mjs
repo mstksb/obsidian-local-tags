@@ -113,7 +113,16 @@ test('panel Shift-click cycles parent and descendant tags without changing selec
       return event;
     };
     const searchUri = anchor.href;
-    assert.match(anchor.getAttribute('aria-label'), /Shift\+click/u);
+    const help = panel.contentEl.querySelector('.local-tags-panel-help');
+    assert.equal(help.textContent, 'Click to search, Shift+click for the next occurrence');
+    assert.equal(help.nextElementSibling, panel.contentEl.querySelector('.local-tags-tree-list'));
+    assert.equal(anchor.hasAttribute('aria-label'), false);
+    assert.equal(anchor.hasAttribute('title'), false);
+    const label = dom.window.document.getElementById(anchor.getAttribute('aria-labelledby'));
+    assert.equal(label.textContent, 'a');
+    assert.equal(label.hidden, true);
+    panel.draw();
+    assert.equal(panel.contentEl.querySelectorAll('.local-tags-panel-help').length, 1);
     for (const [from, to] of [
       [6, 9],
       [10, 15],
