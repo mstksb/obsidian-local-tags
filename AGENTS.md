@@ -51,4 +51,4 @@
 - Release tags identify the exact version; Actions validates and builds that version, then creates a draft with distribution assets for the maintainer to publish.
 - Do not create commits, merge, push, tag, or publish a release unless the current task authorizes the operation; merging to `main` requires the user's approval.
 - The original code is `GPL-3.0-only`. Preserve the applicable third-party licenses.
-- The project does not accept pull requests and does not currently use GitHub Issues for support or requests.
+- The project does not accept pull requests. GitHub Issues welcome bug reports, handled on a best-effort basis, and feature requests, which have very low priority. Follow the [project policy](README.md#project-policy).

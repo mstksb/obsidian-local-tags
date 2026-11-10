@@ -6,6 +6,7 @@ User-visible changes are recorded here. Entries under `[Unreleased]` have not be
 
 ### Documentation
 
+- Accept bug reports through GitHub Issues on a best-effort basis and allow feature requests with very low priority.
 - Add animated README walkthroughs for completion, file-local tag vocabularies, random decoration, in-note navigation, and current-file search.
 
 ## [0.4.1] - 2026-11-09

@@ -94,7 +94,7 @@ The production build is written to `dist/local-tags/`. See [Development](docs/de
 
 ## Project policy
 
-This project does not accept pull requests. GitHub Issues are not currently used for support or feature requests. Ongoing maintenance, support, and new features are not guaranteed.
+This project does not accept pull requests. Bug reports are welcome through GitHub Issues and are handled on a best-effort basis. Feature requests may also be submitted, but have very low priority. Ongoing maintenance, support, and new features are not guaranteed.
 
 ## License
 
