@@ -68,6 +68,8 @@ to the full-note editor when the caret enters an embedded editor.
 - `LICENSE`: the project's GPL v3 terms.
 - `THIRD-PARTY-NOTICES.txt`: notices for third-party code retained in the production bundle.
 
+Only `main.js`, `manifest.json`, and `styles.css` are attached to a GitHub release and receive build-provenance attestations. The build retains `LICENSE` and `THIRD-PARTY-NOTICES.txt` as readable copies of the license texts already embedded in `main.js`; they are not separate release attachments.
+
 Additional build-analysis output is for development and is not a runtime installation file. Do not hand-edit generated files. Changes to dependencies require regenerating and checking the applicable notices.
 
 Obsidian's community-plugin installer downloads only `main.js`, `manifest.json`, and `styles.css`; it does not install the separate license attachments. The build therefore embeds the complete `LICENSE` text and third-party license notices in `main.js` as comments. Keep this embedding when changing the build: a license identifier or URL alone does not carry the license text to those installations. See the [Obsidian release and installation process](https://docs.obsidian.md/Plugins/Releasing/Submit%20your%20plugin) and the [GNU explanation of including the license](https://www.gnu.org/licenses/gpl-faq.en.html#WhyMustIInclude).
@@ -117,8 +119,8 @@ The command does not commit, create a tag, push, or publish a release. Review it
 
 1. Use the approved commit for the release; the version tag must match `manifest.json` exactly, such as `0.1.0`.
 2. Create and push that tag when authorized.
-3. GitHub Actions checks and builds the tagged source, generates build-provenance attestations for the five distribution files, then creates a draft release using the corresponding `CHANGELOG.md` section.
-4. Review the draft and its five distribution files, then publish it as the maintainer.
+3. GitHub Actions checks and builds the tagged source, generates build-provenance attestations for `main.js`, `manifest.json`, and `styles.css`, then creates a draft release containing those three files using the corresponding `CHANGELOG.md` section.
+4. Review the draft and its three runtime files, including the license texts embedded in `main.js`, then publish it as the maintainer.
 
 Pushing source to the public repository makes that source visible before a draft release is published. A draft is a review step for the distribution, not a way to keep pushed source confidential.
 

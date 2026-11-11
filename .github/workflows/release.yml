@@ -41,8 +41,6 @@ jobs:
             dist/local-tags/main.js
             dist/local-tags/manifest.json
             dist/local-tags/styles.css
-            dist/local-tags/LICENSE
-            dist/local-tags/THIRD-PARTY-NOTICES.txt
       - name: Extract the release notes
         run: npm run release:notes -- "$RELEASE_TAG" "$RUNNER_TEMP/release-notes.md"
       - name: Create a draft with the distribution files
@@ -56,6 +54,4 @@ jobs:
             --notes-file "$RUNNER_TEMP/release-notes.md" \
             dist/local-tags/main.js \
             dist/local-tags/manifest.json \
-            dist/local-tags/styles.css \
-            dist/local-tags/LICENSE \
-            dist/local-tags/THIRD-PARTY-NOTICES.txt
+            dist/local-tags/styles.css
