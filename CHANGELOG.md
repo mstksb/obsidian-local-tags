@@ -4,6 +4,22 @@ User-visible changes are recorded here. Entries under `[Unreleased]` have not be
 
 ## [Unreleased]
 
+## [0.6.2] - 2026-11-11
+
+### Fixed
+
+- Prevent empty text nodes and tag spans from accumulating when Reading View decorations are refreshed.
+- Preserve completion-column spacing while avoiding a CSS compatibility warning about multicolumn support.
+
+### Performance
+
+- Reduce repeated normalization when matching Reading View tags to their source positions, and scan excluded Markdown ranges in order during tag recognition.
+
+### Maintenance
+
+- Simplify shared document state, Reading View rendering, and tag-style validation while preserving tag syntax, saved settings, and commands.
+- Attach and attest only `main.js`, `manifest.json`, and `styles.css` in releases, while retaining the complete project license and third-party notices inside `main.js`.
+
 ## [0.6.1] - 2026-11-11
 
 ### Documentation

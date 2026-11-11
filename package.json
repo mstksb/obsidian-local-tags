@@ -1,6 +1,6 @@
 {
   "name": "local-tags",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "File-local tags for Obsidian with completion, highlighting, and a hierarchical search view.",
   "author": "mstksb",
   "license": "GPL-3.0-only",
