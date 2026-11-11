@@ -1,4 +1,4 @@
-import { ItemView } from 'obsidian';
+import { getLanguage, ItemView } from 'obsidian';
 import type { WorkspaceLeaf } from 'obsidian';
 import { config } from './config.ts';
 import type { TreeNode } from './domain/index.ts';
@@ -12,6 +12,10 @@ let nextTreeLabelId = 0;
 export class PrivateTagView extends ItemView {
   private displayedPath: string | null = null;
   private list: HTMLUListElement | null = null;
+  private searchInput: HTMLInputElement | null = null;
+  private emptyMessage: HTMLDivElement | null = null;
+  private searchName = true;
+  private searchSummary = true;
   private readonly rows = new Map<
     string,
     {
@@ -39,6 +43,8 @@ export class PrivateTagView extends ItemView {
   }
   onOpen(): Promise<void> {
     this.register(this.controller.subscribe(() => this.draw()));
+    const unsubscribe = this.styling?.subscribeSynopses(() => this.draw());
+    if (unsubscribe) this.register(unsubscribe);
     this.draw();
     const detach = this.styling?.mountPanel(this.containerEl, this.controller);
     if (detach) this.register(detach);
@@ -48,12 +54,10 @@ export class PrivateTagView extends ItemView {
   draw(): void {
     const path = this.controller.index.path;
     if (path !== this.displayedPath) {
-      this.contentEl.replaceChildren();
+      this.list?.replaceChildren();
       this.rows.clear();
-      this.list = null;
       this.displayedPath = path;
     }
-    if (!path) return;
     const document = this.contentEl.ownerDocument;
     const ownerWindow = document.defaultView;
     if (!ownerWindow) return;
@@ -63,12 +67,64 @@ export class PrivateTagView extends ItemView {
       return list;
     };
     if (!this.list) {
+      const japanese = getLanguage() === 'ja';
+      const search = ownerWindow.createDiv();
+      search.className = 'local-tags-tree-search';
+      this.searchInput = ownerWindow.createEl('input');
+      this.searchInput.type = 'search';
+      this.searchInput.placeholder = japanese ? 'タグを検索' : 'Search tags';
+      this.searchInput.setAttribute('aria-label', this.searchInput.placeholder);
+      this.searchInput.addEventListener('input', () => this.draw());
+      const targets = ownerWindow.createDiv();
+      targets.className = 'local-tags-tree-search-targets';
+      for (const [name, text] of [
+        ['name', japanese ? 'タグ名' : 'Tag name'],
+        ['summary', japanese ? '概要' : 'Summary'],
+      ] as const) {
+        const label = ownerWindow.createEl('label');
+        const checkbox = ownerWindow.createEl('input');
+        checkbox.type = 'checkbox';
+        checkbox.name = name;
+        checkbox.checked = true;
+        checkbox.addEventListener('change', () => {
+          if (name === 'name') this.searchName = checkbox.checked;
+          else this.searchSummary = checkbox.checked;
+          this.draw();
+        });
+        label.append(checkbox, text);
+        targets.append(label);
+      }
+      search.append(this.searchInput, targets);
       const help = ownerWindow.createDiv();
       help.className = 'local-tags-panel-help';
       help.textContent = 'Click to search, Shift+click for the next occurrence';
       this.list = makeList();
-      this.contentEl.append(help, this.list);
+      this.emptyMessage = ownerWindow.createDiv();
+      this.emptyMessage.className = 'local-tags-tree-empty';
+      this.emptyMessage.setAttribute('role', 'status');
+      this.emptyMessage.textContent = japanese ? '一致するタグがありません' : 'No matching tags';
+      this.emptyMessage.hidden = true;
+      this.contentEl.append(search, help, this.list, this.emptyMessage);
     }
+    if (!path) {
+      if (this.emptyMessage) this.emptyMessage.hidden = true;
+      return;
+    }
+    const query = this.searchInput?.value.trim().toLowerCase() ?? '';
+    const filterNodes = (nodes: TreeNode[]): TreeNode[] =>
+      nodes.flatMap((node) => {
+        const children = filterNodes(node.children);
+        const synopsis = this.controller.file
+          ? this.styling?.synopsis(this.controller.file, node.path)
+          : undefined;
+        const matches =
+          (this.searchName && node.path.toLowerCase().includes(query)) ||
+          (this.searchSummary && !!synopsis?.toLowerCase().includes(query));
+        return matches || children.length ? [{ ...node, children }] : [];
+      });
+    const tree = this.controller.index.tree();
+    const visible = query ? filterNodes(tree) : tree;
+    if (this.emptyMessage) this.emptyMessage.hidden = !query || visible.length > 0;
     const visited = new Set<string>();
     const drawNodes = (nodes: TreeNode[], list: HTMLUListElement): void => {
       let previous: HTMLLIElement | null = null;
@@ -127,7 +183,7 @@ export class PrivateTagView extends ItemView {
         }
       }
     };
-    drawNodes(this.controller.index.tree(), this.list);
+    drawNodes(visible, this.list);
     for (const [name, row] of this.rows)
       if (!visited.has(name)) {
         row.item.remove();

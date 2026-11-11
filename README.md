@@ -11,7 +11,7 @@ Check [Releases](https://github.com/mstksb/obsidian-local-tags/releases) for pub
 - Show per-note tag descriptions beside completion suggestions and in tooltips in the note and tag panel.
 - Choose substring or prefix completion matching, with optional case sensitivity.
 - Display tags in Source mode, Live Preview, and Reading View.
-- Browse the current file's tags in a hierarchical panel.
+- Browse the current file's tags in a hierarchical panel and instantly filter them by name or description.
 - Click a tag in the panel to search for its text within the current file.
 - Shift+click a tag to cycle through its occurrences with a line highlight and an outline around the matching tag.
 - Adjust the shared text color, background color, emphasis, and vertical padding in the plugin settings.
@@ -24,6 +24,12 @@ Check [Releases](https://github.com/mstksb/obsidian-local-tags/releases) for pub
 ## See it in action
 
 Completion, hierarchical tag lists, and click-to-search follow familiar tag interactions. Local Tags adds a separate vocabulary for each note, per-note random decoration, and Shift-click navigation.
+
+### Filter the tag list as you type
+
+Type in **Search tags** to narrow the current note's tag list immediately. Use the **Tag name** and **Summary** checkboxes to search names, descriptions, or both. Matching ignores case and keeps the ancestors of matching tags visible. Clear the search to restore the full list. See [Tag panel search](docs/usage.md#tag-panel-search) for details.
+
+![Typing a search and switching tag-name and summary filters in the tag panel](assets/demos/tag-panel-search.gif)
 
 ### Complete tags as you type
 

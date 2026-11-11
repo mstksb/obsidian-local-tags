@@ -17,7 +17,7 @@ const result = await build({
       "export {documentField} from './src/editor/state.ts';",
       "export {EditorState} from '@codemirror/state';",
       "export {EditorView} from '@codemirror/view';",
-      "export {MarkdownView,FileView,TFile,Setting,editorInfoField,editorLivePreviewField} from 'obsidian';",
+      "export {MarkdownView,FileView,TFile,Setting,editorInfoField,editorLivePreviewField,setTestLanguage} from 'obsidian';",
     ].join('\n'),
     resolveDir: project,
   },

@@ -32,6 +32,8 @@ Tests focus on documented behavior, input/output boundaries, editing state, and 
 
 Use English by default for UI labels, user-facing messages, source comments, test descriptions, and documentation. Examples should use English wording. Focused Unicode tests may contain non-English input when it is needed to verify supported text.
 
+Tag-panel search controls and the no-results message support Japanese and English, following Obsidian's language setting. This is an explicit exception to the default English UI convention. Keep regression descriptions and general fixtures in English; use focused Japanese input data to check Unicode search.
+
 ## Source layout
 
 | Location        | Responsibility                               |
@@ -92,6 +94,8 @@ For [tag descriptions](usage.md#tag-descriptions), check completion rows, Enter 
 Use the same version of the source, settings, and distribution for verification and release. Keep the vault's notes and existing settings when replacing the runtime files.
 
 Once a release is approved for Obsidian's community directory, also check installation or update through Obsidian's community-plugin settings.
+
+For [tag panel search](usage.md#tag-panel-search), check immediate substring filtering in English and Japanese, independent **Tag name** and **Summary** checkboxes, ancestor context, both targets disabled, and clearing the query. Confirm that typing keeps input focus, file switches use the new note's descriptions, description edits update results, and click and Shift+click retain their documented behavior.
 
 ## Prepare a release
 

@@ -66,6 +66,7 @@ export class StylingFeature {
   private readonly owner: Plugin;
   private readonly settings: () => LocalTagsSettings;
   private readonly writer: DocumentWriter;
+  private readonly synopsisListeners = new Set<() => void>();
   private readonly states = new Map<TFile, FileState>();
   private readonly scopes = new Map<TFile, string>();
   private readonly generations = new Map<TFile, object>();
@@ -175,6 +176,11 @@ export class StylingFeature {
     return this.active ? this.states.get(file)?.synopses.get(name) : undefined;
   }
 
+  subscribeSynopses(callback: () => void): () => void {
+    this.synopsisListeners.add(callback);
+    return () => this.synopsisListeners.delete(callback);
+  }
+
   private hideTooltips(): void {
     for (const tooltip of this.tooltips.values()) tooltip.hide();
   }
@@ -232,6 +238,7 @@ export class StylingFeature {
   async reload(file: TFile, sourceOverride?: SourceOverride): Promise<void> {
     if (!this.active || file.extension !== 'md') return;
     const request = {};
+    let synopsesChanged = false;
     try {
       const views = this.views(file);
       const editors = views.filter((view) => view.getMode() === 'source');
@@ -274,6 +281,9 @@ export class StylingFeature {
       const state = this.state(file);
       state.source = source;
       state.diagnostics = parsed.diagnostics;
+      synopsesChanged =
+        state.synopses.size !== parsed.synopses.size ||
+        [...parsed.synopses].some(([name, text]) => state.synopses.get(name) !== text);
       state.synopses = parsed.synopses;
       state.names = [
         ...new Set(
@@ -297,11 +307,14 @@ export class StylingFeature {
     } catch (error) {
       if (this.active && this.generations.get(file) === request) {
         const state = this.state(file);
+        synopsesChanged = state.synopses.size > 0;
         state.synopses.clear();
         state.diagnostics = [{ severity: 'error', message: String(error) }];
       }
     }
     this.refresh();
+    if (synopsesChanged && this.active && this.generations.get(file) === request)
+      for (const listener of this.synopsisListeners) listener();
   }
 
   private reportError(file: TFile, error: unknown): void {
@@ -789,6 +802,7 @@ export class StylingFeature {
   dispose(): void {
     if (!this.active) return;
     this.active = false;
+    this.synopsisListeners.clear();
     closeStylingPickers();
     for (const tooltip of this.tooltips.values()) tooltip.dispose();
     this.tooltips.clear();

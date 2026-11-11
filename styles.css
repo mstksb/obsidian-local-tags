@@ -37,6 +37,37 @@ span.local-tags-error {
   line-height: var(--line-height-tight);
 }
 
+.local-tags-tree-search {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-2-2);
+  margin-bottom: var(--size-4-2);
+}
+
+.local-tags-tree-search input[type='search'] {
+  width: 100%;
+  min-width: 0;
+}
+
+.local-tags-tree-search-targets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-4-3);
+  font-size: var(--font-ui-small);
+}
+
+.local-tags-tree-search-targets label {
+  display: flex;
+  align-items: center;
+  gap: var(--size-2-1);
+  cursor: pointer;
+}
+
+.local-tags-tree-empty {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
 .local-tags-tree-list {
   list-style: none;
   padding-inline-start: var(--size-4-4);

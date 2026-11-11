@@ -4,6 +4,16 @@ User-visible changes are recorded here. Entries under `[Unreleased]` have not be
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-11
+
+### Added
+
+- Filter the current note's tag panel immediately by tag name, description, or both, using case-insensitive substring matching and independent checkboxes. Keep ancestor context, preserve the search while switching notes, and support Japanese and English search controls.
+
+### Documentation
+
+- Add an animated README walkthrough for tag-panel search and its tag-name and summary filters.
+
 ## [0.5.0] - 2026-11-10
 
 ### Added

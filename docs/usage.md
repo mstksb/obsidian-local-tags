@@ -152,6 +152,18 @@ Descriptions appear beside every matching completion suggestion. Pressing Enter 
 
 Descriptions refresh when the note changes. Invalid decoration values can report errors while the description remains available. Duplicate definitions suppress the affected tag's description. Multiple configuration headings or separate definition lists suppress all descriptions until the structure is corrected.
 
+## Tag panel search
+
+Run **Open tag panel** and type in **Search tags** to filter the current note's tag list immediately. The search uses substring matching across complete hierarchical tag names and the [descriptions](#tag-descriptions) attached to exact tags. English matching ignores case; Japanese text is also supported. Tag identity and completion settings are unchanged.
+
+Use the **Tag name** and **Summary** checkboxes to choose the search targets. Both start enabled, and a match in either target is enough. Turning both off shows no matches while a search is entered. Clear the search, or enter only whitespace, to restore the full list. Surrounding whitespace is ignored.
+
+Ancestors remain visible to show the path to a matching child. A matching parent's description does not include unrelated children. Descriptions belong to their exact tag and are not inherited for searching.
+
+The input and checkboxes stay in place while the list updates. The current search and target choices remain when switching notes, and each note uses its own tags and descriptions. These temporary choices are reset when the panel is reopened. Description edits update the results. No match shows **No matching tags**.
+
+Search controls and the no-results message use Japanese when Obsidian's language is Japanese and English otherwise. Clicking a remaining tag still opens Obsidian Search; Shift+click still navigates within the note. Filtering the panel does not change the note or Obsidian's search query.
+
 ## In-note navigation
 
 Shift+left-click a tag in the panel, without Ctrl, Command, or Alt, to scroll to its first occurrence in the current note. Repeat to visit the next occurrence in source order, returning to the first after the last. A parent tag also matches its descendants, so `##people` includes `##people/Alex`.

@@ -1,6 +1,13 @@
 import { StateField } from '@codemirror/state';
 
 export const apiVersion = 'test-api';
+let language = 'en';
+export function getLanguage() {
+  return language;
+}
+export function setTestLanguage(value) {
+  language = value;
+}
 export function addIcon() {}
 
 export class TFile {
