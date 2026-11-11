@@ -26,6 +26,7 @@
 - Use Node.js 24 and the committed npm lockfile; install with `npm ci --ignore-scripts`.
 - Follow `tsconfig.json` and the repository's formatting and lint configuration.
 - Use English by default for UI labels, user-facing messages, comments, test descriptions, and repository documentation. Use non-English literals only when a focused Unicode check or a documented external interface requires them.
+- The maintained README and usage-guide translations are an explicit exception to the default English documentation rule. Follow [Language conventions](docs/development.md#language-conventions) for the supported locales and for updating translations alongside their English sources.
 
 ## Build and validation
 

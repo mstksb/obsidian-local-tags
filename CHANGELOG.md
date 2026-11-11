@@ -4,6 +4,14 @@ User-visible changes are recorded here. Entries under `[Unreleased]` have not be
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-11-11
+
+### Documentation
+
+- Provide the README and usage guide in English, Japanese, Simplified Chinese, Traditional Chinese, Spanish, Brazilian Portuguese, and German, with language-navigation links and links to the usage guide in the same language.
+- Document how translations are maintained alongside the English sources, while keeping documentation language coverage separate from UI localization and runtime verification.
+- Replace the README's outdated community-directory acceptance notice with instructions for installing the published plugin.
+
 ## [0.6.0] - 2026-11-11
 
 ### Added

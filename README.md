@@ -1,8 +1,10 @@
 # Local Tags
 
+[English](README.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [Deutsch](README.de.md)
+
 Local Tags adds file-local `##tags` to Obsidian. Use the same tag name in different notes without mixing their completion suggestions or tag lists.
 
-Check [Releases](https://github.com/mstksb/obsidian-local-tags/releases) for published packages. Community-plugin installation becomes available after the plugin has been accepted into Obsidian's community directory.
+Install **Local Tags** from **Settings → Community plugins → Browse**, or check [Releases](https://github.com/mstksb/obsidian-local-tags/releases) for published packages.
 
 ## Features
 
@@ -94,6 +96,8 @@ See [Usage](docs/usage.md) for input rules, recognition limits, shared appearanc
 
 Basic use with English and Japanese text is expected to work, but has not been comprehensively verified. Behavior in other languages remains unverified.
 
+The README and usage guide are available in seven language versions. Documentation translations do not change the plugin's UI language support or establish that tag recognition and input-method behavior have been verified in those languages.
+
 ## Build and test
 
 Use Node.js 24 and npm:
@@ -119,11 +123,13 @@ Third-party components retain their respective licenses. Their notices are gener
 
 ## Documentation and updates
 
-| File                                       | Purpose and update conditions                                                                                                                                                |
-| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [README.md](README.md)                     | Project overview, installation, basic operations, project policy, and document index; update when these change.                                                              |
-| [AGENTS.md](AGENTS.md)                     | Project-specific editing instructions; update when the repository's working rules or references change.                                                                      |
-| [docs/usage.md](docs/usage.md)             | Input rules, recognition limits, shared and per-note appearance settings, tag descriptions, panel actions, in-note navigation, and search caveats. Update when these change. |
-| [docs/development.md](docs/development.md) | Build, test, manual checks, version preparation, and release procedure; update when those commands or processes change.                                                      |
-| [CHANGELOG.md](CHANGELOG.md)               | User-visible changes for each release; update before preparing a release.                                                                                                    |
-| [LICENSE](LICENSE)                         | License terms for the project's original code; keep licensing statements consistent with this file.                                                                          |
+| File                                                                                                                                                                                                                  | Purpose and update conditions                                                                                                                                                                                           |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [README.md](README.md)                                                                                                                                                                                                | English source for the project overview, installation, basic operations, project policy, and document index; update it and its translations when these change.                                                          |
+| README translations: [日本語](README.ja.md), [简体中文](README.zh-CN.md), [繁體中文](README.zh-TW.md), [Español](README.es.md), [Português (Brasil)](README.pt-BR.md), [Deutsch](README.de.md)                        | Translations of this README; update alongside the English source.                                                                                                                                                       |
+| [AGENTS.md](AGENTS.md)                                                                                                                                                                                                | Project-specific editing instructions; update when the repository's working rules or references change.                                                                                                                 |
+| [docs/usage.md](docs/usage.md)                                                                                                                                                                                        | English source for input rules, recognition limits, shared and per-note appearance settings, tag descriptions, panel actions, in-note navigation, and search caveats. Update it and its translations when these change. |
+| Usage translations: [日本語](docs/usage.ja.md), [简体中文](docs/usage.zh-CN.md), [繁體中文](docs/usage.zh-TW.md), [Español](docs/usage.es.md), [Português (Brasil)](docs/usage.pt-BR.md), [Deutsch](docs/usage.de.md) | Translations of the usage guide; update alongside the English source.                                                                                                                                                   |
+| [docs/development.md](docs/development.md)                                                                                                                                                                            | Build, test, manual checks, version preparation, and release procedure; update when those commands or processes change.                                                                                                 |
+| [CHANGELOG.md](CHANGELOG.md)                                                                                                                                                                                          | User-visible changes for each release; update before preparing a release.                                                                                                                                               |
+| [LICENSE](LICENSE)                                                                                                                                                                                                    | License terms for the project's original code; keep licensing statements consistent with this file.                                                                                                                     |

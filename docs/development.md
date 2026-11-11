@@ -32,6 +32,10 @@ Tests focus on documented behavior, input/output boundaries, editing state, and 
 
 Use English by default for UI labels, user-facing messages, source comments, test descriptions, and documentation. Examples should use English wording. Focused Unicode tests may contain non-English input when it is needed to verify supported text.
 
+The README and usage guide are the documentation exception: maintain English, Japanese (`ja`), Simplified Chinese (`zh-CN`), Traditional Chinese (`zh-TW`), Spanish (`es`), Brazilian Portuguese (`pt-BR`), and German (`de`) versions. Keep `README.md` and `docs/usage.md` as the English sources, with translations in `README.<locale>.md` and `docs/usage.<locale>.md`. When the source changes, update the corresponding translations in the same change and retain the language-navigation links. Each translated README must link to the usage guide in the same language.
+
+Translate explanatory prose and image descriptions, while preserving product names, actual UI labels, commands, configuration keys, and code examples. A translated UI-label explanation may accompany its exact label. Documentation translations do not expand the plugin's UI language support or imply that tag recognition, input methods, or other runtime behavior have been verified in every documentation language. Other repository documentation remains English by default.
+
 Tag-panel search controls and the no-results message support Japanese and English, following Obsidian's language setting. This is an explicit exception to the default English UI convention. Keep regression descriptions and general fixtures in English; use focused Japanese input data to check Unicode search.
 
 ## Source layout
