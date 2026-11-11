@@ -103,6 +103,17 @@ function normalizeWhitespace(source: string): {
   return { value, offsets };
 }
 
+function normalizedOffset(offsets: readonly number[], offset: number): number {
+  let low = 0;
+  let high = offsets.length;
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2);
+    if (offsets[middle]! < offset) low = middle + 1;
+    else high = middle;
+  }
+  return low;
+}
+
 function segments(source: string, allowed = parse(source), highlight = false): Segment[] {
   const candidates = allowed.filter((tag) => tag.kind !== 'plain');
   let tree = markdownTree(source);
@@ -293,16 +304,6 @@ export function decorateReading(
   }
   const marks: ReadingMark[] = [];
   const normalized = normalizeWhitespace(flat);
-  const normalizedOffset = (offset: number): number => {
-    let low = 0;
-    let high = normalized.offsets.length;
-    while (low < high) {
-      const middle = Math.floor((low + high) / 2);
-      if ((normalized.offsets[middle] ?? flat.length) < offset) low = middle + 1;
-      else high = middle;
-    }
-    return low;
-  };
   let cursor = 0;
   let referenceIndex = 0;
   let aligned = true;
@@ -310,7 +311,7 @@ export function decorateReading(
     if (segment.reference) {
       while (references[referenceIndex]) {
         const previous = references[referenceIndex]!;
-        const end = normalizedOffset(previous.to);
+        const end = normalizedOffset(normalized.offsets, previous.to);
         // Compare normalized boundaries, including empty embeds within a whitespace run.
         if (end > cursor || (end === cursor && previous.from === previous.to)) break;
         referenceIndex++;
@@ -320,8 +321,8 @@ export function decorateReading(
         aligned = false;
         continue;
       }
-      const from = normalizedOffset(reference.from);
-      const to = normalizedOffset(reference.to);
+      const from = normalizedOffset(normalized.offsets, reference.from);
+      const to = normalizedOffset(normalized.offsets, reference.to);
       const target = reference.element.getAttribute(segment.reference.embed ? 'src' : 'data-href');
       if (normalized.value.slice(cursor, from).trim() || target !== segment.reference.target)
         aligned = false;
@@ -329,7 +330,8 @@ export function decorateReading(
       continue;
     }
     if (!segment.value) continue;
-    const value = normalizeWhitespace(segment.value).value;
+    const segmentNormalized = normalizeWhitespace(segment.value);
+    const value = segmentNormalized.value;
     // Whitespace at an opaque boundary may collapse with the following text.
     const start =
       value.startsWith(' ') && normalized.value[cursor - 1] === ' ' ? cursor - 1 : cursor;
@@ -341,12 +343,8 @@ export function decorateReading(
       continue;
     }
     for (const mark of segment.marks) {
-      const from =
-        normalized.offsets[
-          at + normalizeWhitespace(segment.value.slice(0, mark.from)).value.length
-        ];
-      const to =
-        normalized.offsets[at + normalizeWhitespace(segment.value.slice(0, mark.to)).value.length];
+      const from = normalized.offsets[at + normalizedOffset(segmentNormalized.offsets, mark.from)];
+      const to = normalized.offsets[at + normalizedOffset(segmentNormalized.offsets, mark.to)];
       if (from !== undefined && to !== undefined) marks.push({ ...mark, from, to });
     }
     cursor = at + value.length;
@@ -361,7 +359,7 @@ export function decorateReading(
     for (const mark of intersecting) {
       const from = Math.max(0, mark.from - entry.from);
       const to = Math.min(entry.node.length, mark.to - entry.from);
-      fragment.append(entry.node.data.slice(offset, from));
+      if (from > offset) fragment.append(entry.node.data.slice(offset, from));
       const span = document.adoptNode(ownerWindow.createSpan());
       span.dataset.localTagsReading = 'true';
       span.className = mark.kind === 'error' ? config.errorClass : config.tagClass;
@@ -390,7 +388,7 @@ export function decorateReading(
       offset = to;
       count++;
     }
-    fragment.append(entry.node.data.slice(offset));
+    if (offset < entry.node.length) fragment.append(entry.node.data.slice(offset));
     entry.node.replaceWith(fragment);
   }
   return count;

@@ -1,14 +1,11 @@
-import { FileView, MarkdownView, Notice, Plugin, TFile, editorInfoField } from 'obsidian';
-import type { EditorView } from '@codemirror/view';
+import { FileView, MarkdownView, Notice, Plugin, TFile } from 'obsidian';
 import { config } from './config.ts';
 import { editorExtension, refreshTagDisplay } from './editor/extension.ts';
-import { editorReadingSection } from './editor/reading.ts';
 import { CurrentDocumentController } from './services/controller.ts';
 import { TagNavigation } from './services/navigation.ts';
 import { PrivateTagSuggest } from './suggest.ts';
 import { PrivateTagView } from './views.ts';
-import { clearReading, decorateReading } from './reading.ts';
-import { ReadingSourceCache } from './reading-source.ts';
+import { ReadingRenderer } from './reading-renderer.ts';
 import { LocalTagsSettingTab, normalizeSettings } from './settings.ts';
 import type { LocalTagsSettings } from './settings.ts';
 import { registerLocalTagsIcon } from './icons.ts';
@@ -24,15 +21,18 @@ export default class LocalTagsPlugin extends Plugin {
   private controller!: CurrentDocumentController;
   private navigation!: TagNavigation;
   private styling!: StylingFeature;
-  private readonly readingElements = new Map<HTMLElement, () => boolean>();
-  private readonly readingRequests = new WeakMap<HTMLElement, object>();
-  private readingSources!: ReadingSourceCache;
+  private readingRenderer!: ReadingRenderer;
   private alive = false;
 
   onload(): void {
     this.alive = true;
     registerLocalTagsIcon();
-    this.readingSources = new ReadingSourceCache((file) => this.app.vault.cachedRead(file));
+    this.readingRenderer = new ReadingRenderer(this.app, {
+      isActive: () => this.alive,
+      views: () => this.controller.views,
+      synchronizeReading: (file, document) => this.styling.synchronizeReading(file, document),
+      run: (work) => this.run(work),
+    });
     this.controller = new CurrentDocumentController(this.app);
     this.navigation = new TagNavigation(this.app, this.controller);
     this.styling = new StylingFeature(this.app, this, () => this.settings);
@@ -49,7 +49,7 @@ export default class LocalTagsPlugin extends Plugin {
     this.registerEditorExtension(
       editorExtension(
         this.controller,
-        (view) => this.refreshEditorReading(view),
+        (view) => this.readingRenderer.refreshEditor(view),
         () => this.settings.hideTagPrefix,
       ),
     );
@@ -108,14 +108,14 @@ export default class LocalTagsPlugin extends Plugin {
     this.registerEvent(
       this.app.vault.on('modify', (file) => {
         if (file instanceof TFile) {
-          this.readingSources.invalidate(file);
+          this.readingRenderer.invalidate(file);
           this.navigation.sourceModified(file);
         }
       }),
     );
     this.registerEvent(
       this.app.vault.on('rename', (file) => {
-        if (file instanceof TFile) this.readingSources.invalidate(file);
+        if (file instanceof TFile) this.readingRenderer.invalidate(file);
         if (this.controller.file === file) {
           this.navigation.invalidate();
           this.controller.refresh();
@@ -124,84 +124,16 @@ export default class LocalTagsPlugin extends Plugin {
     );
     this.registerEvent(
       this.app.vault.on('delete', (file) => {
-        if (file instanceof TFile) this.readingSources.invalidate(file);
+        if (file instanceof TFile) this.readingRenderer.invalidate(file);
         if (this.controller.file === file) {
           this.navigation.track(null);
           this.run(this.controller.activate(null));
         }
       }),
     );
-    this.registerMarkdownPostProcessor((element, context) => {
-      if (!this.alive) return;
-      const request = {};
-      this.readingRequests.set(element, request);
-      const initialInfo = context.getSectionInfo(element);
-      const initialRange = initialInfo
-        ? { lineStart: initialInfo.lineStart, lineEnd: initialInfo.lineEnd }
-        : null;
-      const file = this.app.vault.getFileByPath(context.sourcePath);
-      if (!file) return;
-      this.run(
-        this.readingSources.read(file).then((document) => {
-          // Live Preview renders callouts and individual table cells without section info.
-          // Wait until the widget is attached, then resolve against the current editor buffer.
-          const editorSection = !initialRange
-            ? editorReadingSection(element, this.controller.views, context.sourcePath)
-            : null;
-          if (
-            !this.alive ||
-            this.readingRequests.get(element) !== request ||
-            !(editorSection?.isCurrent() ?? document?.isCurrent()) ||
-            context.sourcePath !== file.path
-          )
-            return;
-          if (editorSection) {
-            decorateReading(
-              element,
-              editorSection.source,
-              editorSection.allowed,
-              editorSection.showPrefix,
-              {
-                path: context.sourcePath,
-                offset: editorSection.from,
-                isCurrent: editorSection.isCurrent,
-              },
-            );
-            this.trackReading(element);
-            return;
-          }
-          // Reading owns offscreen sections while they are disconnected from
-          // the DOM. Its section lookup also rejects sections it has discarded.
-          const info = context.getSectionInfo(element);
-          if (
-            !info ||
-            (initialRange &&
-              (info.lineStart !== initialRange.lineStart || info.lineEnd !== initialRange.lineEnd))
-          )
-            return;
-          const section = document?.section(info.lineStart, info.lineEnd);
-          if (!section || !document) return;
-          const offset = document.lineOffset(info.lineStart);
-          if (offset === undefined) return;
-          this.styling.synchronizeReading(file, document);
-          decorateReading(element, section.source, section.allowed, undefined, {
-            path: context.sourcePath,
-            offset,
-            isCurrent: document.isCurrent,
-          });
-          this.trackReading(element, () => {
-            const current = context.getSectionInfo(element);
-            return (
-              // A source update does not discard unchanged rendered sections.
-              this.readingRequests.get(element) === request &&
-              context.sourcePath === file.path &&
-              current?.lineStart === info.lineStart &&
-              current.lineEnd === info.lineEnd
-            );
-          });
-        }),
-      );
-    });
+    this.registerMarkdownPostProcessor((element, context) =>
+      this.readingRenderer.process(element, context),
+    );
     this.app.workspace.onLayoutReady(() => {
       if (!this.alive) return;
       const view = this.markdownTarget();
@@ -280,39 +212,6 @@ export default class LocalTagsPlugin extends Plugin {
     this.appearanceRoot = undefined;
   }
 
-  private refreshEditorReading(view: EditorView): void {
-    if (!this.alive) return;
-    const path = view.state.field(editorInfoField, false)?.file?.path;
-    if (!path) return;
-    for (const element of view.contentDOM.querySelectorAll<HTMLElement>(
-      '[data-callout],table th,table td',
-    )) {
-      if (
-        element.parentElement?.closest('[data-callout]') ||
-        element.querySelector('[contenteditable="true"]')
-      )
-        continue;
-      const section = editorReadingSection(element, [view], path);
-      if (!section?.isCurrent()) continue;
-      decorateReading(element, section.source, section.allowed, section.showPrefix, {
-        path,
-        offset: section.from,
-        isCurrent: section.isCurrent,
-      });
-      this.trackReading(element);
-    }
-  }
-
-  private trackReading(element: HTMLElement, owned = () => element.isConnected): void {
-    this.readingElements.set(element, owned);
-    // Bound ownership references when sections are re-rendered.
-    for (const [old, isOwned] of this.readingElements)
-      if (!isOwned()) {
-        clearReading(old);
-        this.readingElements.delete(old);
-      }
-  }
-
   private openView(type: string): void {
     const leaf =
       this.app.workspace.getLeavesOfType(type)[0] ?? this.app.workspace.getRightLeaf(false);
@@ -334,10 +233,9 @@ export default class LocalTagsPlugin extends Plugin {
     this.styling.dispose();
     this.settingsVersion++;
     this.clearAppearance();
-    this.readingSources.dispose();
+    this.readingRenderer.stop();
     this.navigation.dispose();
     this.controller.dispose();
-    for (const element of this.readingElements.keys()) clearReading(element);
-    this.readingElements.clear();
+    this.readingRenderer.dispose();
   }
 }

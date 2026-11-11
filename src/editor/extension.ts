@@ -95,7 +95,7 @@ export function editorExtension(
     documentField,
     decorations(hidePrefix),
     ViewPlugin.define((view) => {
-      controller.views.add(view);
+      controller.attachView(view);
       controller.observe(view);
       let file = view.state.field(editorInfoField, false)?.file;
       let path = file?.path;
@@ -151,8 +151,7 @@ export function editorExtension(
         destroy() {
           destroyed = true;
           observer?.disconnect();
-          controller.views.delete(view);
-          if (controller.currentView === view) controller.currentView = null;
+          controller.detachView(view);
         },
       };
     }),

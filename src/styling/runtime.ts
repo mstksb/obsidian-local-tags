@@ -17,7 +17,14 @@ import {
   settingsSnapshot,
   stylingEditorExtension,
 } from './editor.ts';
-import type { Diagnostic, Operation, PaletteOptions, RandomOptions, TagStyle } from './types.ts';
+import type {
+  Definitions,
+  Diagnostic,
+  Operation,
+  PaletteOptions,
+  RandomOptions,
+  TagStyle,
+} from './types.ts';
 import { StylingPanel } from './panel.ts';
 import type { PanelAction } from './panel.ts';
 import { DocumentWriter } from './write.ts';
@@ -35,6 +42,20 @@ interface FileState {
   fallbackTags: Set<string>;
   diagnostics: Diagnostic[];
   names: string[];
+}
+
+function applyDefinitions(state: FileState, parsed: Definitions): void {
+  if (parsed.ambiguous) return;
+  const definitions = new Map(parsed.definitions);
+  const fallbackTags = new Set<string>();
+  for (const name of parsed.invalidTags) {
+    const previous = state.lastGood.get(name);
+    if (previous) definitions.set(name, previous);
+    else fallbackTags.add(name);
+  }
+  state.definitions = definitions;
+  state.fallbackTags = fallbackTags;
+  state.lastGood = new Map(definitions);
 }
 
 interface Panel {
@@ -292,18 +313,7 @@ export class StylingFeature {
             .map((tag) => tag.name),
         ),
       ];
-      if (!parsed.ambiguous) {
-        const definitions = new Map(parsed.definitions);
-        const fallbackTags = new Set<string>();
-        for (const name of parsed.invalidTags) {
-          const previous = state.lastGood.get(name);
-          if (previous) definitions.set(name, previous);
-          else fallbackTags.add(name);
-        }
-        state.definitions = definitions;
-        state.fallbackTags = fallbackTags;
-        state.lastGood = new Map(definitions);
-      }
+      applyDefinitions(state, parsed);
     } catch (error) {
       if (this.active && this.generations.get(file) === request) {
         const state = this.state(file);

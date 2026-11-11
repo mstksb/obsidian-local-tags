@@ -13,10 +13,13 @@ export interface Candidate extends Span {
   kind: 'valid' | 'error' | 'plain';
 }
 export interface SyntaxNode {
-  type: string;
-  position?: { start: { offset?: number }; end: { offset?: number } };
-  children?: SyntaxNode[];
-  value?: string;
+  readonly type: string;
+  readonly position?: {
+    readonly start: { readonly offset?: number };
+    readonly end: { readonly offset?: number };
+  };
+  readonly children?: readonly SyntaxNode[];
+  readonly value?: string;
 }
 
 const excludedTypes = new Set([
@@ -166,8 +169,11 @@ function previousCharacter(source: string, at: number): string {
 export function parse(source: string): Candidate[] {
   const excluded = excludedRanges(source);
   const result: Candidate[] = [];
+  let excludedIndex = 0;
   for (let at = source.indexOf('##'); at >= 0; at = source.indexOf('##', at + 2)) {
-    if (excluded.some((range) => at >= range.from && at < range.to)) continue;
+    while (excludedIndex < excluded.length && excluded[excludedIndex]!.to <= at) excludedIndex++;
+    const range = excluded[excludedIndex];
+    if (range && at >= range.from) continue;
     const previous = previousCharacter(source, at);
     if (previous === '#' || (previous && isTagCharacter(previous)) || source[at + 2] === '#')
       continue;
@@ -182,7 +188,7 @@ export function parse(source: string): Candidate[] {
       if (!isTagCharacter(character)) break;
       to += character.length;
     }
-    if (excluded.some((range) => overlaps({ from: at, to }, range))) continue;
+    if (range && to > range.from) continue;
     const name = source.slice(at + 2, to);
     result.push({ from: at, to, name, kind: classify(name) });
   }

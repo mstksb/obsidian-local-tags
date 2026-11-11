@@ -1,21 +1,12 @@
-import { styleKeys } from './types.ts';
-import type { StyleKey, TagStyle } from './types.ts';
-
-const colors = new Set<StyleKey>(['text-color', 'background-color', 'border-color']);
-
-function validValue(key: StyleKey, value: unknown): value is string {
-  return (
-    typeof value === 'string' &&
-    (colors.has(key) ? /^#[0-9a-f]{6}$/iu.test(value) : value === 'on' || value === 'off')
-  );
-}
+import { styleKeys, validColor, validStyleValue } from './types.ts';
+import type { TagStyle } from './types.ts';
 
 function normalized(style: TagStyle): TagStyle {
   const result: TagStyle = {};
   for (const key of styleKeys) {
     if (!Object.hasOwn(style, key)) continue;
     const value = style[key];
-    if (validValue(key, value)) result[key] = value.toLowerCase();
+    if (validStyleValue(key, value)) result[key] = value.toLowerCase();
   }
   return result;
 }
@@ -70,8 +61,7 @@ export function styleProperties(style: TagStyle): Record<string, string> {
 }
 
 function luminance(color: string): number {
-  if (!/^#[0-9a-f]{6}$/iu.test(color))
-    throw new RangeError('Expected a six-digit hexadecimal color');
+  if (!validColor(color)) throw new RangeError('Expected a six-digit hexadecimal color');
   const channels = [1, 3, 5].map((position) => {
     const component = Number.parseInt(color.slice(position, position + 2), 16) / 255;
     return component <= 0.04045 ? component / 12.92 : ((component + 0.055) / 1.055) ** 2.4;

@@ -1,7 +1,7 @@
 import { classify, isTagCharacter, markdownTree, parse } from '../domain/parser.ts';
 import type { SyntaxNode } from '../domain/parser.ts';
 import { paletteStyles } from './palette.ts';
-import { styleKeys } from './types.ts';
+import { isColorKey, styleKeys, validColor, validStyleValue } from './types.ts';
 import type {
   Definitions,
   Diagnostic,
@@ -14,8 +14,8 @@ import type {
 } from './types.ts';
 
 interface Node extends SyntaxNode {
-  depth?: number;
-  children?: Node[];
+  readonly depth?: number;
+  readonly children?: readonly Node[];
 }
 interface Property {
   key: StyleKey;
@@ -57,7 +57,6 @@ const settingOrder: readonly StyleKey[] = [
   'underline',
   'italic',
 ];
-const colors = new Set<StyleKey>(['text-color', 'background-color', 'border-color']);
 const start = (node: Node): number => node.position?.start.offset ?? 0;
 const end = (node: Node): number => node.position?.end.offset ?? 0;
 const lineEnding = (source: string): string => (source.includes('\r\n') ? '\r\n' : '\n');
@@ -66,8 +65,6 @@ const firstLine = (source: string, node: Node): string =>
 const validName = (name: string): boolean =>
   classify(name) === 'valid' && [...name].every(isTagCharacter);
 const isStyleKey = (key: string): key is StyleKey => styleKeys.some((known) => known === key);
-const isColorKey = (key: StyleKey): key is ColorKey => colors.has(key);
-const validColor = (value: string): boolean => /^#[0-9a-f]{6}$/iu.test(value);
 const colorValue = (value: string): string => value.replace(/^\\#/u, '#');
 const renderedValue = (key: StyleKey, value: string): string =>
   isColorKey(key) ? `\\${value}` : value;
@@ -256,7 +253,7 @@ function document(source: string): Document {
           error('Direct style attributes and a style group cannot be mixed', property);
         const rawValue = parsed[2] ?? '';
         const value = isColorKey(key) ? colorValue(rawValue) : rawValue;
-        const valid = isColorKey(key) ? validColor(value) : ['on', 'off'].includes(value);
+        const valid = validStyleValue(key, value);
         const prefix = /^[-+*][ \t]+[^:\s]+:[ \t]*/u.exec(raw)?.[0] ?? '';
         const from = start(property) + prefix.length;
         entry.properties.push({

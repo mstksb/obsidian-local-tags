@@ -11,6 +11,18 @@ export type StyleKey = (typeof styleKeys)[number];
 export type ColorKey = Extract<StyleKey, `${string}-color`>;
 export type TagStyle = Partial<Record<StyleKey, string>>;
 
+const colorKeys = new Set<StyleKey>(['text-color', 'background-color', 'border-color']);
+
+export const isColorKey = (key: StyleKey): key is ColorKey => colorKeys.has(key);
+export const validColor = (value: string): boolean => /^#[0-9a-f]{6}$/iu.test(value);
+
+export function validStyleValue(key: StyleKey, value: unknown): value is string {
+  return (
+    typeof value === 'string' &&
+    (isColorKey(key) ? validColor(value) : value === 'on' || value === 'off')
+  );
+}
+
 export interface RandomOptions {
   bold: boolean;
   italic: boolean;
