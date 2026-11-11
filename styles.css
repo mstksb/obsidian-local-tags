@@ -117,7 +117,7 @@ span.local-tags-error {
 .local-tags-suggestion {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-  column-gap: var(--size-4-3, 12px);
+  gap: 0 var(--size-4-3, 12px);
   align-items: start;
   white-space: normal;
 }
